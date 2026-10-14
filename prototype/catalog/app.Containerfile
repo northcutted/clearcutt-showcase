@@ -12,14 +12,14 @@
 # from a context staged with `clearcutt-factory render --context-dir`, where
 # $ANNOTATIONS (comma-separated) records the base for `clearcutt-factory rebase`:
 #   annotation-manifest[linux/amd64].org.opencontainers.image.base.name=localhost:5001/platform/run-python:3.14
-#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:672b0bdcf02a17ae51625886042fcae0b0900190d5f651b43a460d44040d86ec
+#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:1fb9a536b3677c988d19366a43cf641a4ca7b24526509c3a94801d608d57461a
 #   annotation-manifest[linux/arm64].org.opencontainers.image.base.name=localhost:5001/platform/run-python:3.14
-#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:4889e07bc52ee872e7c566684544eed6e6012994655411291d82d116ce57739d
+#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:8ab8b89db274044c280cdceafb7aa58c9971b1ac126054b7dfbf903ae64588a7
 
 ARG TARGETARCH
 
 # ---- build: stack python ----
-FROM localhost:5001/platform/build-python:3.14@sha256:d56b29f1a9041511a3141123f49c23d6c1950e90f237ef4b4bf1804690362007 AS build
+FROM localhost:5001/platform/build-python:3.14@sha256:56da89414c5d86aa3b0380c22f7bd319c5596426cb17e8dca7ea4afa0725027f AS build
 ARG TARGETOS TARGETARCH SOURCE_DATE_EPOCH
 ENV APP_NAME="catalog"
 ENV PIP_DISABLE_PIP_VERSION_CHECK="1"
@@ -38,7 +38,7 @@ python3 -m pip install --no-deps --no-build-isolation --no-compile --target /out
 FACTORY_EOF
 
 # ---- app ----
-FROM localhost:5001/platform/run-python:3.14@sha256:692d998c4aad0fd7183d82c63af64d7e1f24d1a7eda3cf7d7aef207484a71289
+FROM localhost:5001/platform/run-python:3.14@sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7
 COPY --link --from=build /out/ /app/
 ENV PORT="8080"
 ENV PYTHONDONTWRITEBYTECODE="1"

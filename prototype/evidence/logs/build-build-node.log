@@ -1,0 +1,31 @@
+building localhost:5001/platform/build-node for linux/amd64, linux/arm64
+built sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a
+  linux/amd64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && node --version && npm --version && test -w /out, 5s)
+  linux/arm64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && node --version && npm --version && test -w /out, 2.4s)
+  linux/amd64: 6 high, 12 medium, 1 low
+  linux/arm64: 6 high, 12 medium, 1 low
+pushed localhost:5001/platform/build-node@sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Pushing signature to: localhost:5001/platform/build-node
+Signing artifact...
+Signing artifact...
+Pushing signature to: localhost:5001/platform/build-node
+Signing artifact...
+Pushing signature to: localhost:5001/platform/build-node
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-node/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-node/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-node/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-node/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-node/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/platform/build-node@sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a and attached its attestations
+wrote out/build-node/result.json

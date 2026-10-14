@@ -1,0 +1,94 @@
+== drill stage 2026-10-14T01:49:06Z
+     prototype/platform/images/_shared/run.yaml        | 4 ++--
+     prototype/platform/images/build-python/image.yaml | 3 ++-
+     prototype/platform/images/run-python/image.yaml   | 2 +-
+     3 files changed, 5 insertions(+), 4 deletions(-)
+[t+  11s] stage-lock-run-go                  exit=0  10s
+      package libcrypto3: 3.6.5-r2 → 3.6.3-r4
+      package libssl3: 3.6.5-r2 → 3.6.3-r4
+[t+  30s] stage-build-run-go                 exit=0  19s
+    built sha256:956628cac70b82ddb4c9a5fa7c07a36c495e2a4dd0248f1d0c92bdde363afbff
+      linux/amd64: 4 critical, 22 high, 12 medium, 8 low, 2 unknown
+      linux/arm64: 4 critical, 22 high, 12 medium, 8 low, 2 unknown
+    pushed localhost:5001/platform/run-go@sha256:956628cac70b82ddb4c9a5fa7c07a36c495e2a4dd0248f1d0c92bdde363afbff
+[t+  40s] stage-lock-run-python              exit=0  10s
+      package libcrypto3: 3.6.5-r2 → 3.6.3-r4
+      package libssl3: 3.6.5-r2 → 3.6.3-r4
+      package libxml2-16: removed (2.15.4-r1)
+      package libxml2: added 2.13.6-r3
+[t+  77s] stage-build-run-python             exit=0  37s
+    built sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7
+      linux/amd64: 4 critical, 22 high, 14 medium, 8 low, 2 unknown
+      linux/arm64: 4 critical, 22 high, 14 medium, 8 low, 2 unknown
+    pushed localhost:5001/platform/run-python@sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7
+[t+  90s] stage-lock-run-node                exit=0  13s
+      package libcrypto3: 3.6.5-r2 → 3.6.3-r4
+      package libssl3: 3.6.5-r2 → 3.6.3-r4
+[t+ 134s] stage-build-run-node               exit=0  44s
+    built sha256:2081f203574e0fe50670aad9016df365b2091dda4a817dd37f5ae4fe115217a7
+      linux/amd64: 4 critical, 22 high, 12 medium, 8 low, 2 unknown
+      linux/arm64: 4 critical, 22 high, 12 medium, 8 low, 2 unknown
+    pushed localhost:5001/platform/run-node@sha256:2081f203574e0fe50670aad9016df365b2091dda4a817dd37f5ae4fe115217a7
+[t+ 144s] stage-lock-build-python            exit=0  10s
+      package libxml2-16: removed (2.15.4-r1)
+      package libxml2-dev: 2.15.4-r1 → 2.13.6-r3
+      package libxml2-utils: 2.15.4-r1 → 2.13.6-r3
+      package libxml2: added 2.13.6-r3
+[t+ 275s] stage-build-build-python           exit=0 131s
+    built sha256:56da89414c5d86aa3b0380c22f7bd319c5596426cb17e8dca7ea4afa0725027f
+    pushed localhost:5001/platform/build-python@sha256:56da89414c5d86aa3b0380c22f7bd319c5596426cb17e8dca7ea4afa0725027f
+[t+ 288s] stage-rebase-checkout              exit=0  13s
+    linux/amd64: safe to rebase
+    linux/arm64: safe to rebase
+    rebased sha256:1c3879ed773232c5d41bdbeb40eef956646a6730b1c5f582e172a4a724f4ef2e
+    pushed localhost:5001/apps/checkout@sha256:1c3879ed773232c5d41bdbeb40eef956646a6730b1c5f582e172a4a724f4ef2e
+      base localhost:5001/platform/run-go:1: sha256:ae37fa636410 → sha256:956628cac70b
+[t+ 314s] stage-rebase-storefront            exit=0  26s
+    linux/amd64: safe to rebase
+    linux/arm64: safe to rebase
+    rebased sha256:4cc97ca2489ec15ae4fecac0c42a44a43b783667557b3e55535272ef85c4191f
+    pushed localhost:5001/apps/storefront@sha256:4cc97ca2489ec15ae4fecac0c42a44a43b783667557b3e55535272ef85c4191f
+      base localhost:5001/platform/run-node:24: sha256:ea6d8c16a81b → sha256:2081f203574e
+[t+ 316s] stage-rebase-catalog               exit=1   2s
+      incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds.cpython-314-x86_64-linux-gnu.so needs libxml2.so.16
+      incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds.cpython-314-aarch64-linux-gnu.so needs libxml2.so.16
+      base localhost:5001/platform/run-python:3.14: sha256:692d998c4aad → sha256:3718435d754f
+    error: the new base may break this image; rebuild it, or pass --force to rebase anyway
+[t+ 316s] stage-lock-catalog                 exit=0   0s
+      build image localhost:5001/platform/build-python:3.14: sha256:d56b29f1a904 → sha256:56da89414c5d
+[t+ 353s] stage-build-catalog                exit=0  37s
+    built sha256:0658a3197ecfb667dbc3f8ec41e708d8a794d062af9a776df3e04718f47247de
+      linux/amd64: smoke test passed (GET :8080/healthz, 4.1s)
+      linux/arm64: smoke test passed (GET :8080/healthz, 2.3s)
+      linux/amd64: 4 critical, 22 high, 14 medium, 8 low, 2 unknown
+      linux/arm64: 4 critical, 22 high, 14 medium, 8 low, 2 unknown
+    pushed localhost:5001/apps/catalog@sha256:0658a3197ecfb667dbc3f8ec41e708d8a794d062af9a776df3e04718f47247de
+== before
+holds in platform/: held
+localhost:5001/platform/run-go:1 → sha256:956628cac70b82ddb4c9a5fa7c07a36c495e2a4dd0248f1d0c92bdde363afbff
+    libcrypto3=3.6.3-r4, libssl3=3.6.3-r4
+localhost:5001/platform/run-python:3.14 → sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7
+    libcrypto3=3.6.3-r4, libssl3=3.6.3-r4, libxml2=2.13.6-r3
+localhost:5001/platform/run-node:24 → sha256:2081f203574e0fe50670aad9016df365b2091dda4a817dd37f5ae4fe115217a7
+    libcrypto3=3.6.3-r4, libssl3=3.6.3-r4
+localhost:5001/platform/build-python:3.14 → sha256:56da89414c5d86aa3b0380c22f7bd319c5596426cb17e8dca7ea4afa0725027f
+    libxml2-dev=2.13.6-r3, libxml2-utils=2.13.6-r3, libxml2=2.13.6-r3
+localhost:5001/apps/checkout:latest → sha256:1c3879ed773232c5d41bdbeb40eef956646a6730b1c5f582e172a4a724f4ef2e
+    lock: base 956628cac70b, build image b4037b9637c2
+    libcrypto3=3.6.3-r4, libssl3=3.6.3-r4
+    NAME        INSTALLED  FIXED IN  TYPE  VULNERABILITY        SEVERITY  EPSS         RISK  
+    libcrypto3  3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (52nd)  0.5   
+    libssl3     3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (52nd)  0.5   
+localhost:5001/apps/storefront:latest → sha256:4cc97ca2489ec15ae4fecac0c42a44a43b783667557b3e55535272ef85c4191f
+    lock: base 2081f203574e, build image e6dac01a7237
+    libcrypto3=3.6.3-r4, libssl3=3.6.3-r4
+    NAME        INSTALLED  FIXED IN  TYPE  VULNERABILITY        SEVERITY  EPSS         RISK  
+    libcrypto3  3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (52nd)  0.5   
+    libssl3     3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (52nd)  0.5   
+localhost:5001/apps/catalog:latest → sha256:0658a3197ecfb667dbc3f8ec41e708d8a794d062af9a776df3e04718f47247de
+    lock: base 3718435d754f, build image 56da89414c5d
+    libcrypto3=3.6.3-r4, libssl3=3.6.3-r4, libxml2=2.13.6-r3
+    NAME        INSTALLED  FIXED IN  TYPE  VULNERABILITY        SEVERITY  EPSS         RISK  
+    libcrypto3  3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (52nd)  0.5   
+    libssl3     3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (52nd)  0.5   
+== staged in 379s

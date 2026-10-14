@@ -1,0 +1,4 @@
+pushed stack python to localhost:5001/stacks/python@sha256:ecc02b376205aae3e18020ec2cd75d4f8b2d7a56408fd050e0a35d32f2074de6
+Signing artifact...
+Pushing signature to: localhost:5001/stacks/python
+signed localhost:5001/stacks/python@sha256:ecc02b376205aae3e18020ec2cd75d4f8b2d7a56408fd050e0a35d32f2074de6

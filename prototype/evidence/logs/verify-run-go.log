@@ -1,0 +1,3 @@
+verifying the recipe or rebase attestation on localhost:5001/platform/run-go@sha256:ab4ea30c2ef4c48f55ed7f9272850465d0a1a65c6f37b1af35026305b7cad94d
+rebuilding from recipe of localhost:5001/platform/run-go@sha256:ab4ea30c2ef4c48f55ed7f9272850465d0a1a65c6f37b1af35026305b7cad94d without cache (linux/amd64, linux/arm64)
+reproducible: rebuilt sha256:ab4ea30c2ef4c48f55ed7f9272850465d0a1a65c6f37b1af35026305b7cad94d matches

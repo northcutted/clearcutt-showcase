@@ -1,0 +1,12 @@
+rebasing localhost:5001/apps/catalog@sha256:8968d70182030ee59abd237c667fa5aff7a8389dfd8658fcf54d61def7ba04d2 onto localhost:5001/platform/run-python:3.14 (sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7)
+  linux/amd64: localhost:5001/platform/run-python@sha256:672b0bdcf02a17ae51625886042fcae0b0900190d5f651b43a460d44040d86ec → sha256:1fb9a536b3677c988d19366a43cf641a4ca7b24526509c3a94801d608d57461a
+  linux/arm64: localhost:5001/platform/run-python@sha256:4889e07bc52ee872e7c566684544eed6e6012994655411291d82d116ce57739d → sha256:8ab8b89db274044c280cdceafb7aa58c9971b1ac126054b7dfbf903ae64588a7
+linux/amd64:
+  incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds.cpython-314-x86_64-linux-gnu.so needs libxml2.so.16
+linux/arm64:
+  incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds.cpython-314-aarch64-linux-gnu.so needs libxml2.so.16
+  base localhost:5001/platform/run-python:3.14: sha256:692d998c4aad → sha256:3718435d754f
+wrote catalog/app.lock.yaml
+wrote catalog/app.Containerfile
+error: the new base may break this image; rebuild it, or pass --force to rebase anyway
+catalog/app.lock.yaml now pins the new base; build the app to move it

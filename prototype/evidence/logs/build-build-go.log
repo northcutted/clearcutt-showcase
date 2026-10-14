@@ -1,0 +1,31 @@
+building localhost:5001/platform/build-go for linux/amd64, linux/arm64
+built sha256:b4037b9637c2af4259c5358a49b69832c5f9443d35c6af625d5545ce0c2e56c9
+  linux/amd64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && go version && git --version && test -w /out && test -w /src, 4.9s)
+  linux/arm64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && go version && git --version && test -w /out && test -w /src, 3.9s)
+  linux/amd64: no known vulnerabilities
+  linux/arm64: no known vulnerabilities
+pushed localhost:5001/platform/build-go@sha256:b4037b9637c2af4259c5358a49b69832c5f9443d35c6af625d5545ce0c2e56c9
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Signing artifact...
+Pushing signature to: localhost:5001/platform/build-go
+Signing artifact...
+Pushing signature to: localhost:5001/platform/build-go
+Pushing signature to: localhost:5001/platform/build-go
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-go/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-go/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-go/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-go/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-go/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/platform/build-go@sha256:b4037b9637c2af4259c5358a49b69832c5f9443d35c6af625d5545ce0c2e56c9 and attached its attestations
+wrote out/build-go/result.json

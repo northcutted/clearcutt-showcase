@@ -30,11 +30,11 @@ RUN apk add --no-cache --repositories-file /dev/null \
       libbrotlidec1=1.2.0-r6 \
       libbrotlienc1=1.2.0-r6 \
       libcrypt1-2.44=2.44-r8 \
-      libcrypto3=3.6.5-r2 \
+      libcrypto3=3.6.3-r4 \
       libgcc=16.2.0-r1 \
       libicu78=78.3-r4 \
       libnghttp2-14=1.70.0-r5 \
-      libssl3=3.6.5-r2 \
+      libssl3=3.6.3-r4 \
       libstdc++=16.2.0-r1 \
       libuv=1.53.0-r0 \
       libxcrypt=4.5.2-r6 \

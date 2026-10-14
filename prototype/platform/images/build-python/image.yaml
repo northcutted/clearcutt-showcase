@@ -8,7 +8,8 @@ metadata:
   name: build-python
   tags: ["3.14"]
 spec:
-  packages: [python-3.14, python-3.14-dev, py3.14-pip, py3.14-setuptools, build-base, pkgconf, libxml2-dev]
+  packages: [python-3.14, python-3.14-dev, py3.14-pip, py3.14-setuptools, build-base, pkgconf,
+             libxml2-dev=2.13.6-r3, libxml2=2.13.6-r3, libxml2-utils=2.13.6-r3]  # DRILL hold: libxml2 2.13
   env:
     PYTHONDONTWRITEBYTECODE: "1"
     PIP_NO_CACHE_DIR: "1"

@@ -1,0 +1,31 @@
+building localhost:5001/apps/checkout for linux/amd64, linux/arm64
+built sha256:c0de8a9783f188491212b46e89eb4560529267d3cacb2a595a69157b97ef0136
+  linux/amd64: smoke test passed (GET :8080/healthz, 2s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 800ms)
+  linux/amd64: 1 medium, 3 unknown
+  linux/arm64: 1 medium, 3 unknown
+pushed localhost:5001/apps/checkout@sha256:c0de8a9783f188491212b46e89eb4560529267d3cacb2a595a69157b97ef0136
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Pushing signature to: localhost:5001/apps/checkout
+Signing artifact...
+Signing artifact...
+Pushing signature to: localhost:5001/apps/checkout
+Signing artifact...
+Pushing signature to: localhost:5001/apps/checkout
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/apps/checkout@sha256:c0de8a9783f188491212b46e89eb4560529267d3cacb2a595a69157b97ef0136 and attached its attestations
+wrote out/checkout/result.json

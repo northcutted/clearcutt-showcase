@@ -1,0 +1,38 @@
+rebasing localhost:5001/apps/storefront@sha256:daaa8c2d7a96c1e3179fd9cf12c0a61cff258ea3016dcc1f4ee6ba7bbf81bf1c onto localhost:5001/platform/run-node:24 (sha256:ea6d8c16a81b9a7bd796bfe353dee91b9613e73f7c5905a0bc62a81d5f52f449)
+  linux/amd64: localhost:5001/platform/run-node@sha256:ccca5247d2e4177d104e59b94d82e44f8c41fe5698d4fcbed230fefe7951c728 → sha256:6ec5ec67054a09deac37a7e86eca3dfa44d4ca393a455597a54d4bd350f1ab4d
+  linux/arm64: localhost:5001/platform/run-node@sha256:944f5555d506de6448c00c2293f7d7ecb0021733e84541e938a6bafd3b6730b9 → sha256:b7a74e62f1ecb8b3da8ecf36f33730e1f292ec24d4af366c5a9b9a16a6e3c830
+linux/amd64: safe to rebase
+linux/arm64: safe to rebase
+rebased sha256:8be2b0bda669dbc38e700295ad037a72fc15cfb7edbe6bf5d1b7d27f4871445d
+  linux/amd64: smoke test passed (GET :8080/healthz, 5.7s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 2.9s)
+  linux/amd64: no known vulnerabilities
+  linux/arm64: no known vulnerabilities
+pushed localhost:5001/apps/storefront@sha256:8be2b0bda669dbc38e700295ad037a72fc15cfb7edbe6bf5d1b7d27f4871445d
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Signing artifact...
+Pushing signature to: localhost:5001/apps/storefront
+Signing artifact...
+Pushing signature to: localhost:5001/apps/storefront
+Pushing signature to: localhost:5001/apps/storefront
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront-rebase/attestations/rebase.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront-rebase/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront-rebase/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront-rebase/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront-rebase/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/apps/storefront@sha256:8be2b0bda669dbc38e700295ad037a72fc15cfb7edbe6bf5d1b7d27f4871445d and attached its attestations
+wrote out/storefront-rebase/result.json
+  base localhost:5001/platform/run-node:24: sha256:fea2afb1151b → sha256:ea6d8c16a81b
+wrote storefront/app.lock.yaml
+wrote storefront/app.Containerfile

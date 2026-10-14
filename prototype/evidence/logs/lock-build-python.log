@@ -1,0 +1,76 @@
+resolving image localhost:5001/tools/buildkit:v0.33.1-local
+resolving image docker/dockerfile:1
+resolving image cgr.dev/chainguard/wolfi-base:latest
+fetching APKINDEX for x86_64 from https://apk.cgr.dev/chainguard
+fetching APKINDEX for aarch64 from https://apk.cgr.dev/chainguard
+resolving tool stack-workdirs (build)
+  base cgr.dev/chainguard/wolfi-base:latest: pinned at sha256:256c88bb0664
+  buildkit localhost:5001/tools/buildkit:v0.33.1-local: pinned at sha256:3bbbb45c8928
+  frontend docker/dockerfile:1: pinned at sha256:4edf897a3ffa
+  toolbox cgr.dev/chainguard/wolfi-base:latest: pinned at sha256:256c88bb0664
+  package apk-tools: added 2.14.10-r17
+  package binutils: added 2.47-r1
+  package build-base: added 1-r10
+  package busybox: added 1.38.0-r3
+  package ca-certificates-bundle: added 20260909-r2
+  package gcc: added 16.2.0-r1
+  package gdbm: added 1.26-r7
+  package glibc-2.44-locale-posix: added 2.44-r8
+  package glibc-2.44: added 2.44-r8
+  package glibc-dev: added 2.43-r13
+  package gmp: added 6.3.0-r10
+  package isl: added 0.28-r4
+  package ld-linux-2.44: added 2.44-r8
+  package libatomic: added 16.2.0-r1
+  package libbrotlicommon1: added 1.2.0-r6
+  package libbrotlidec1: added 1.2.0-r6
+  package libbrotlienc1: added 1.2.0-r6
+  package libbz2-1: added 1.0.8-r25
+  package libcrypt1-2.44: added 2.44-r8
+  package libexpat1: added 2.9.0-r0
+  package libffi: added 3.8.0-r2
+  package libgcc: added 16.2.0-r1
+  package libgomp: added 16.2.0-r1
+  package libquadmath: added 16.2.0-r1
+  package libstdc++-dev: added 16.2.0-r1
+  package libstdc++: added 16.2.0-r1
+  package libuuid: added 2.42.4-r0
+  package libxcrypt-dev: added 4.5.2-r6
+  package libxcrypt: added 4.5.2-r6
+  package libxml2-16: added 2.15.4-r1
+  package libxml2-dev: added 2.15.4-r1
+  package libxml2-utils: added 2.15.4-r1
+  package libzstd1: added 1.5.7-r10
+  package linux-headers: added 7.2.10-r0
+  package make: added 4.4.1-r15
+  package mpc: added 1.4.1-r1
+  package mpdecimal: added 4.0.1-r4
+  package mpfr: added 4.2.2-r3
+  package ncurses-terminfo-base: added 6.6.20261010-r0
+  package ncurses: added 6.6.20261010-r0
+  package nss-db: added 2.43-r13
+  package nss-hesiod: added 2.43-r13
+  package openssf-compiler-options: added 20250904-r11
+  package openssl-4.0-libcrypto: added 4.0.3-r6
+  package openssl-4.0-libssl: added 4.0.3-r6
+  package openssl-provider-legacy-allowed: added 4.0.3-r1
+  package pkgconf: added 3.0.8-r0
+  package posix-cc-wrappers: added 2-r10
+  package py3-pip-wheel: added 26.2.1-r4
+  package py3.14-pip-base: added 26.2.1-r4
+  package py3.14-pip: added 26.2.1-r4
+  package py3.14-setuptools: added 84.0.0-r1
+  package python-3.14-base: added 3.14.8_git20261008-r1
+  package python-3.14: added 3.14.8_git20261008-r1
+  package readline: added 8.3-r3
+  package sqlite-libs: added 3.54.0-r0
+  package wolfi-base: added 1-r7
+  package wolfi-baselayout: added 20230201-r30
+  package wolfi-keys: added 1-r13
+  package xz-dev: added 5.8.4-r0
+  package xz: added 5.8.4-r0
+  package zlib-dev: added 1.3.2.1_rc20260921-r0
+  package zlib: added 1.3.2.1_rc20260921-r0
+  tool stack-workdirs: added 
+wrote platform/images/build-python/image.lock.yaml
+wrote platform/images/build-python/image.Containerfile

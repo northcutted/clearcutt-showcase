@@ -1,0 +1,3 @@
+verifying the recipe or rebase attestation on localhost:5001/apps/storefront@sha256:8be2b0bda669dbc38e700295ad037a72fc15cfb7edbe6bf5d1b7d27f4871445d
+repeating the rebase of localhost:5001/apps/storefront@sha256:daaa8c2d7a96c1e3179fd9cf12c0a61cff258ea3016dcc1f4ee6ba7bbf81bf1c onto localhost:5001/platform/run-node@sha256:ea6d8c16a81b9a7bd796bfe353dee91b9613e73f7c5905a0bc62a81d5f52f449
+reproducible: rebase gives sha256:8be2b0bda669dbc38e700295ad037a72fc15cfb7edbe6bf5d1b7d27f4871445d again

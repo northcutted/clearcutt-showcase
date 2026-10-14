@@ -1,0 +1,58 @@
+resolving image localhost:5001/tools/buildkit:v0.33.1-local
+resolving image docker/dockerfile:1
+resolving image cgr.dev/chainguard/wolfi-base:latest
+fetching APKINDEX for x86_64 from https://apk.cgr.dev/chainguard
+fetching APKINDEX for aarch64 from https://apk.cgr.dev/chainguard
+resolving tool stack-workdirs (build)
+  base cgr.dev/chainguard/wolfi-base:latest: pinned at sha256:256c88bb0664
+  buildkit localhost:5001/tools/buildkit:v0.33.1-local: pinned at sha256:3bbbb45c8928
+  frontend docker/dockerfile:1: pinned at sha256:4edf897a3ffa
+  toolbox cgr.dev/chainguard/wolfi-base:latest: pinned at sha256:256c88bb0664
+  package apk-tools: added 2.14.10-r17
+  package busybox: added 1.38.0-r3
+  package ca-certificates-bundle: added 20260909-r2
+  package cyrus-sasl-heimdal-libs: added 2.1.28-r58
+  package gdbm: added 1.26-r7
+  package git: added 2.56.0-r0
+  package glibc-2.44-locale-posix: added 2.44-r8
+  package glibc-2.44: added 2.44-r8
+  package go-1.27: added 1.27.2-r0
+  package heimdal-libs: added 7.8.0-r53
+  package keyutils-libs: added 1.6.3-r41
+  package krb5-conf: added 1.0-r10
+  package krb5-libs: added 1.22.2-r5
+  package ld-linux-2.44: added 2.44-r8
+  package libbrotlicommon1: added 1.2.0-r6
+  package libbrotlidec1: added 1.2.0-r6
+  package libbrotlienc1: added 1.2.0-r6
+  package libcom_err: added 1.47.4-r3
+  package libcrypt1-2.44: added 2.44-r8
+  package libcrypto3: added 3.6.5-r2
+  package libcurl-openssl4: added 8.22.0-r4
+  package libexpat1: added 2.9.0-r0
+  package libgcc: added 16.2.0-r1
+  package libidn2: added 2.3.8-r10
+  package libldap-2.6: added 2.6.14-r0
+  package libnghttp2-14: added 1.70.0-r5
+  package libpcre2-8-0: added 10.49-r1
+  package libpsl: added 0.23.3-r2
+  package libssl3: added 3.6.5-r2
+  package libunistring: added 1.4.2-r4
+  package libverto: added 0.3.2-r9
+  package libxcrypt: added 4.5.2-r6
+  package ncurses-terminfo-base: added 6.6.20261010-r0
+  package ncurses: added 6.6.20261010-r0
+  package nghttp3: added 1.18.0-r1
+  package ngtcp2: added 1.25.0-r5
+  package openssl-4.0-libcrypto: added 4.0.3-r6
+  package openssl-4.0-libssl: added 4.0.3-r6
+  package openssl-provider-legacy-allowed: added 4.0.3-r1
+  package readline: added 8.3-r3
+  package sqlite-libs: added 3.54.0-r0
+  package wolfi-base: added 1-r7
+  package wolfi-baselayout: added 20230201-r30
+  package wolfi-keys: added 1-r13
+  package zlib: added 1.3.2.1_rc20260921-r0
+  tool stack-workdirs: added 
+wrote platform/images/build-go/image.lock.yaml
+wrote platform/images/build-go/image.Containerfile

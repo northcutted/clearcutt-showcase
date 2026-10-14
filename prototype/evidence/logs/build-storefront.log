@@ -1,0 +1,31 @@
+building localhost:5001/apps/storefront for linux/amd64, linux/arm64
+built sha256:daaa8c2d7a96c1e3179fd9cf12c0a61cff258ea3016dcc1f4ee6ba7bbf81bf1c
+  linux/amd64: smoke test passed (GET :8080/healthz, 5.2s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 2.9s)
+  linux/amd64: no known vulnerabilities
+  linux/arm64: no known vulnerabilities
+pushed localhost:5001/apps/storefront@sha256:daaa8c2d7a96c1e3179fd9cf12c0a61cff258ea3016dcc1f4ee6ba7bbf81bf1c
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Signing artifact...
+Pushing signature to: localhost:5001/apps/storefront
+Signing artifact...
+Pushing signature to: localhost:5001/apps/storefront
+Signing artifact...
+Pushing signature to: localhost:5001/apps/storefront
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/storefront/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/apps/storefront@sha256:daaa8c2d7a96c1e3179fd9cf12c0a61cff258ea3016dcc1f4ee6ba7bbf81bf1c and attached its attestations
+wrote out/storefront/result.json

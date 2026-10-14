@@ -1,0 +1,31 @@
+building localhost:5001/apps/catalog for linux/amd64, linux/arm64
+built sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8
+  linux/amd64: smoke test passed (GET :8080/healthz, 4.3s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 2.8s)
+  linux/amd64: 2 medium
+  linux/arm64: 2 medium
+pushed localhost:5001/apps/catalog@sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Pushing signature to: localhost:5001/apps/catalog
+Signing artifact...
+Signing artifact...
+Pushing signature to: localhost:5001/apps/catalog
+Signing artifact...
+Pushing signature to: localhost:5001/apps/catalog
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/catalog/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/catalog/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/catalog/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/catalog/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/catalog/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/apps/catalog@sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8 and attached its attestations
+wrote out/catalog/result.json

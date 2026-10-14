@@ -15,7 +15,7 @@ builder:
     digest: sha256:256c88bb066424045021090932d50be93c8e3f2ce3586707702a401b146f3e43
 base:
   ref: localhost:5001/platform/run-node:24
-  digest: sha256:ea6d8c16a81b9a7bd796bfe353dee91b9613e73f7c5905a0bc62a81d5f52f449
+  digest: sha256:2081f203574e0fe50670aad9016df365b2091dda4a817dd37f5ae4fe115217a7
 app:
   stack: node
   stackDigest: sha256:17fb0ac0a5c09ea4976837c28a2a98ce3360b88e2bc3521e6371f07b3ca8e470
@@ -26,5 +26,5 @@ app:
     ref: localhost:5001/platform/build-node:24
     digest: sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a
   runPlatforms:
-    linux/amd64: sha256:6ec5ec67054a09deac37a7e86eca3dfa44d4ca393a455597a54d4bd350f1ab4d
-    linux/arm64: sha256:b7a74e62f1ecb8b3da8ecf36f33730e1f292ec24d4af366c5a9b9a16a6e3c830
+    linux/amd64: sha256:f58303968314e1f22f4b8673c17f3ab7758737fdd3c56a0edcd16fc6d39668df
+    linux/arm64: sha256:c22c70a2d04b50cad2ec63023c6a557acfa2f05dfc48fc65254d13f5252842e8

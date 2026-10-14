@@ -1,0 +1,8 @@
+fetching APKINDEX for x86_64 from https://apk.cgr.dev/chainguard
+fetching APKINDEX for aarch64 from https://apk.cgr.dev/chainguard
+  package libxml2-16: removed (2.15.4-r1)
+  package libxml2-dev: 2.15.4-r1 → 2.13.6-r3
+  package libxml2-utils: 2.15.4-r1 → 2.13.6-r3
+  package libxml2: added 2.13.6-r3
+wrote platform/images/build-python/image.lock.yaml
+wrote platform/images/build-python/image.Containerfile

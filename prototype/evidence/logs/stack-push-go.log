@@ -1,0 +1,4 @@
+pushed stack go to localhost:5001/stacks/go@sha256:085256687e48e74c87f1faee5311633e57f14688d80ceefff83fb63f1f2e3d93
+Signing artifact...
+Pushing signature to: localhost:5001/stacks/go
+signed localhost:5001/stacks/go@sha256:085256687e48e74c87f1faee5311633e57f14688d80ceefff83fb63f1f2e3d93

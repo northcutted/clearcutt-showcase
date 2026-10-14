@@ -28,9 +28,9 @@ RUN apk add --no-cache --repositories-file /dev/null \
       libbrotlidec1=1.2.0-r6 \
       libbrotlienc1=1.2.0-r6 \
       libcrypt1-2.44=2.44-r8 \
-      libcrypto3=3.6.5-r2 \
+      libcrypto3=3.6.3-r4 \
       libgcc=16.2.0-r1 \
-      libssl3=3.6.5-r2 \
+      libssl3=3.6.3-r4 \
       libxcrypt=4.5.2-r6 \
       openssl-4.0-libcrypto=4.0.3-r6 \
       openssl-4.0-libssl=4.0.3-r6 \

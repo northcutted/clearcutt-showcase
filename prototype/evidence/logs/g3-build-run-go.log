@@ -1,0 +1,31 @@
+building localhost:5001/platform/run-go for linux/amd64, linux/arm64
+built sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a
+  linux/amd64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && test -s /etc/ssl/certs/ca-certificates.crt && test -e /usr/share/zoneinfo/UTC, 1.1s)
+  linux/arm64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && test -s /etc/ssl/certs/ca-certificates.crt && test -e /usr/share/zoneinfo/UTC, 800ms)
+  linux/amd64: no known vulnerabilities
+  linux/arm64: no known vulnerabilities
+pushed localhost:5001/platform/run-go@sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Signing artifact...
+Pushing signature to: localhost:5001/platform/run-go
+Signing artifact...
+Pushing signature to: localhost:5001/platform/run-go
+Signing artifact...
+Pushing signature to: localhost:5001/platform/run-go
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/run-go/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/run-go/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/run-go/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/run-go/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/run-go/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/platform/run-go@sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a and attached its attestations
+wrote out/run-go/result.json

@@ -1,0 +1,9 @@
+run-go exit=0 seconds=9 reproducible: rebuilt sha256:ab4ea30c2ef4c48f55ed7f9272850465d0a1a65c6f37b1af35026305b7cad94d matches 
+build-go exit=0 seconds=43 reproducible: rebuilt sha256:b4037b9637c2af4259c5358a49b69832c5f9443d35c6af625d5545ce0c2e56c9 matches 
+run-python exit=0 seconds=22 reproducible: rebuilt sha256:16950a5844f37a07b2b19faf2e4c7be09dc320a95969ce39acaf2d450fc27c87 matches 
+build-python exit=0 seconds=88 reproducible: rebuilt sha256:d56b29f1a9041511a3141123f49c23d6c1950e90f237ef4b4bf1804690362007 matches 
+run-node exit=0 seconds=28 reproducible: rebuilt sha256:fea2afb1151b55e1bd179fc16df972a8afa6395a8d91e4d590d744b73830a5a9 matches 
+build-node exit=0 seconds=28 reproducible: rebuilt sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a matches 
+checkout exit=0 seconds=16 reproducible: rebuilt sha256:c0de8a9783f188491212b46e89eb4560529267d3cacb2a595a69157b97ef0136 matches 
+catalog exit=0 seconds=25 reproducible: rebuilt sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8 matches 
+storefront exit=0 seconds=35 reproducible: rebuilt sha256:daaa8c2d7a96c1e3179fd9cf12c0a61cff258ea3016dcc1f4ee6ba7bbf81bf1c matches 

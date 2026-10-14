@@ -1,0 +1,13 @@
+resolving image localhost:5001/tools/buildkit:v0.33.1-local
+resolving image docker/dockerfile:1
+resolving image cgr.dev/chainguard/wolfi-base:latest
+resolving image localhost:5001/platform/run-python:3.14
+resolving image localhost:5001/platform/build-python:3.14
+  base localhost:5001/platform/run-python:3.14: pinned at sha256:16950a5844f3
+  buildkit localhost:5001/tools/buildkit:v0.33.1-local: pinned at sha256:3bbbb45c8928
+  frontend docker/dockerfile:1: pinned at sha256:4edf897a3ffa
+  toolbox cgr.dev/chainguard/wolfi-base:latest: pinned at sha256:256c88bb0664
+  build image localhost:5001/platform/build-python:3.14: pinned at sha256:720e88c1fd91
+  stack localhost:5001/stacks/python:1: pinned at sha256:ecc02b376205
+wrote catalog/app.lock.yaml
+wrote catalog/app.Containerfile

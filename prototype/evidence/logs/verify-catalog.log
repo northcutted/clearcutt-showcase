@@ -1,0 +1,3 @@
+verifying the recipe or rebase attestation on localhost:5001/apps/catalog@sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8
+rebuilding from recipe of localhost:5001/apps/catalog@sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8 without cache (linux/amd64, linux/arm64)
+reproducible: rebuilt sha256:f4f7fb1320138664abaeac7fd3baaf9652f122e615cfc4f3dfa55b505c94aea8 matches

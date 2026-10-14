@@ -1,0 +1,38 @@
+rebasing localhost:5001/apps/checkout@sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96 onto localhost:5001/platform/run-go:1 (sha256:956628cac70b82ddb4c9a5fa7c07a36c495e2a4dd0248f1d0c92bdde363afbff)
+  linux/amd64: localhost:5001/platform/run-go@sha256:0817dbb5292b2ecefe56c550637f040de9331885f78aae6bd1aa2d537e7605e0 → sha256:61f9383c6d92ec1e17a39d29fb3bafca17d82360ac1ad17d51b34e323e540551
+  linux/arm64: localhost:5001/platform/run-go@sha256:47007eca050d2990d043eebce30ec44ef57f6beaa81f23891ca8969baf99fdf7 → sha256:d2d2f1cb73bb4a7bc4405df353f17418776ccfc43ee24741185ae7330bfd19a6
+linux/amd64: safe to rebase
+linux/arm64: safe to rebase
+rebased sha256:1c3879ed773232c5d41bdbeb40eef956646a6730b1c5f582e172a4a724f4ef2e
+  linux/amd64: smoke test passed (GET :8080/healthz, 1.9s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 800ms)
+  linux/amd64: 4 critical, 22 high, 13 medium, 8 low, 5 unknown
+  linux/arm64: 4 critical, 22 high, 13 medium, 8 low, 5 unknown
+pushed localhost:5001/apps/checkout@sha256:1c3879ed773232c5d41bdbeb40eef956646a6730b1c5f582e172a4a724f4ef2e
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Pushing signature to: localhost:5001/apps/checkout
+Signing artifact...
+Signing artifact...
+Pushing signature to: localhost:5001/apps/checkout
+Signing artifact...
+Pushing signature to: localhost:5001/apps/checkout
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout-rebase/attestations/rebase.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout-rebase/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout-rebase/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout-rebase/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/checkout-rebase/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/apps/checkout@sha256:1c3879ed773232c5d41bdbeb40eef956646a6730b1c5f582e172a4a724f4ef2e and attached its attestations
+wrote out/checkout-rebase/result.json
+  base localhost:5001/platform/run-go:1: sha256:ae37fa636410 → sha256:956628cac70b
+wrote checkout/app.lock.yaml
+wrote checkout/app.Containerfile
