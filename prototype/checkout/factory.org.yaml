@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/org.schema.json
+# Org profile for the checkout repository. Each app repository carries a copy of
+# the platform team's profile until factory can reference a published one
+# (plan F5); only the registry namespace and tags differ.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: OrgProfile
+
+registry: localhost:5001/apps
+tags: [latest]
+
+defaults:
+  platforms: [linux/amd64, linux/arm64]
+  labels:
+    org.opencontainers.image.vendor: clearcutt-showcase
+
+builder:
+  buildkit: localhost:5001/tools/buildkit:v0.33.1-local
+  frontend: docker/dockerfile:1
+  toolbox: cgr.dev/chainguard/wolfi-base:latest
+  runtime: podman
+
+signing:
+  mode: key
+  key: ../keys/images.key
+  args: [--use-signing-config=false, --tlog-upload=false]
+  verify:                       # who signs app images (built and rebased)
+    key: ../keys/images.pub
+    args: [--insecure-ignore-tlog=true]
+  stacks:                       # who may sign the stacks this app builds on
+    key: ../keys/stacks.pub
+    args: [--insecure-ignore-tlog=true]
+
+vulnerabilities:
+  scanner: grype
+  failOn: critical
+  onlyFixed: true
+
+policy:
+  requireNonRoot: true
+  requiredLabels: [org.opencontainers.image.source]
+  requireSignedStacks: true
+  allowTOFU: false
+  allowedRegistries: [cgr.dev/chainguard/, localhost:5001/, docker.io/moby/, docker.io/docker/]

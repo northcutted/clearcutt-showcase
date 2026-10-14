@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# checkout (payments team): a Go HTTP service on the platform's stack go:1.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: App
+metadata:
+  name: checkout
+spec:
+  stack: localhost:5001/stacks/go:1
+  labels:
+    org.opencontainers.image.source: https://github.com/clearcutt-showcase/checkout
+    org.opencontainers.image.description: Checkout service (Go, stack go:1)
+  test:
+    http: {port: 8080, path: /healthz}

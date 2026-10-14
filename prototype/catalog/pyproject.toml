@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "catalog"
+version = "1.0.0"
+description = "ClearCutt showcase catalog service"
+requires-python = ">=3.14"
+
+[tool.setuptools]
+packages = ["catalog"]
