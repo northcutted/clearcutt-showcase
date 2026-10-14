@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
+# Stack go:1 — published as localhost:5001/stacks/go:1 and signed with the
+# stacks key (plan §3). Apps name it by reference.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Stack
+metadata:
+  name: go
+  description: Static Go binaries on run-go
+spec:
+  build: ../images/build-go/image.yaml
+  run: ../images/run-go/image.yaml
+  platforms: [linux/amd64, linux/arm64]
+  crossCompile: true
+  buildEnv:
+    CGO_ENABLED: "0"
+    MAIN: .
+    # The build image runs as 65532, which can't write BuildKit cache mounts
+    # (created root-owned), so no caches: (FINDINGS.md P-2).
+    GOCACHE: /tmp/go-build
+    GOMODCACHE: /tmp/go-mod
+    GOFLAGS: -mod=readonly
+  steps:
+    - run: go mod download
+    - run: GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w -buildid=" -o "/out/$APP_NAME" "$MAIN"
+  user: "65532"
+  entrypoint: ["/app/{{name}}"]
+  env:
+    PORT: "8080"
+  test:
+    http: {port: 8080, path: /healthz}

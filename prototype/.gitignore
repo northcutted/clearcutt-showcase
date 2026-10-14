@@ -1,0 +1,13 @@
+# Private signing keys never leave this machine (regenerate with scripts/up.sh).
+keys/*.key
+# Build output from clearcutt-factory (per app/image), BuildKit staging, and run state.
+out/
+**/out/
+.state/
+# Node and Python build leftovers in the app sources.
+node_modules/
+dist/
+__pycache__/
+*.egg-info/
+build/
+*.so

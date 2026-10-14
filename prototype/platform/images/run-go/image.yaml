@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Run image for Go apps (stack go:1): static binaries need only CA certificates
+# and time zone data, both in _shared/run.yaml.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+extends: ../_shared/run.yaml
+metadata:
+  name: run-go
+  tags: ["1"]
+spec:
+  labels:
+    org.opencontainers.image.description: Run image for Go apps (stack go:1)
+  test:
+    command: [/bin/sh, -c, 'test "$(id -u)" = 65532 && test -s /etc/ssl/certs/ca-certificates.crt && test -e /usr/share/zoneinfo/UTC']

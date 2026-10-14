@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Run image for Node.js apps (stack node:1).
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+extends: ../_shared/run.yaml
+metadata:
+  name: run-node
+  tags: ["24"]
+spec:
+  packages: [nodejs-24]
+  env:
+    NODE_ENV: production
+  labels:
+    org.opencontainers.image.description: Run image for Node.js 24 apps (stack node:1)
+  test:
+    command: [/bin/sh, -c, 'test "$(id -u)" = 65532 && node -e "console.log(process.version, process.versions.openssl)"']

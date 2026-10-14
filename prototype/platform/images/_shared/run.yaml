@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Shared by every run image (extends: ../_shared/run.yaml): what apps ship on.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+metadata: {name: shared-run}
+spec:
+  packages: [ca-certificates-bundle, tzdata]
+  labels:
+    org.opencontainers.image.source: https://github.com/clearcutt-showcase/platform
+  user: "65532"
+  workdir: /app

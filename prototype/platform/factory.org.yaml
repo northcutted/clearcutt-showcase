@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/org.schema.json
+# Org profile for the platform repository (prototype: local registry, key signing).
+# On GitHub this becomes keyless signing bound to clearcutt-showcase/* callers
+# (plan §4); here a cosign key pair per signer role stands in for each identity.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: OrgProfile
+
+registry: localhost:5001/platform
+# Platform images carry line tags only (metadata.tags in each image.yaml), no latest.
+tags: []
+
+defaults:
+  base: cgr.dev/chainguard/wolfi-base:latest
+  platforms: [linux/amd64, linux/arm64]
+  labels:
+    org.opencontainers.image.vendor: clearcutt-showcase
+
+builder:
+  # moby/buildkit v0.33.1 plus a registry mirror for localhost:5001
+  # (prototype/local/buildkit; FINDINGS.md P-1).
+  buildkit: localhost:5001/tools/buildkit:v0.33.1-local
+  frontend: docker/dockerfile:1
+  toolbox: cgr.dev/chainguard/wolfi-base:latest
+  runtime: podman
+
+signing:
+  mode: key
+  key: ../keys/images.key
+  # No public transparency log for a local prototype.
+  args: [--use-signing-config=false, --tlog-upload=false]
+  verify:                       # who signs platform and app images
+    key: ../keys/images.pub
+    args: [--insecure-ignore-tlog=true]
+  stacks:                       # who signs stacks (plan §4, F2)
+    key: ../keys/stacks.pub
+    args: [--insecure-ignore-tlog=true]
+
+vulnerabilities:
+  scanner: grype
+  failOn: critical
+  onlyFixed: true
+
+policy:
+  requireNonRoot: true
+  requiredLabels: [org.opencontainers.image.source]
+  requireSignedStacks: true
+  allowTOFU: false
+  allowedRegistries: [cgr.dev/chainguard/, localhost:5001/, docker.io/moby/, docker.io/docker/]

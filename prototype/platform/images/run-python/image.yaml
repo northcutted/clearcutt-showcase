@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Run image for Python apps (stack python:1). libxml2 is here because catalog's
+# C extension links against it: anything an app needs from the OS goes in the
+# run image. Since 2.14 Wolfi ships the library as libxml2-16 (soname
+# libxml2.so.16); the plain libxml2 package is now an empty transitional one.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+extends: ../_shared/run.yaml
+metadata:
+  name: run-python
+  tags: ["3.14"]
+spec:
+  packages: [python-3.14, libxml2-16]
+  env:
+    PYTHONDONTWRITEBYTECODE: "1"
+    PYTHONUNBUFFERED: "1"
+  labels:
+    org.opencontainers.image.description: Run image for Python 3.14 apps (stack python:1)
+  test:
+    command: [/bin/sh, -c, 'test "$(id -u)" = 65532 && python3 -c "import ssl, sys; print(sys.version, ssl.OPENSSL_VERSION)" && ls /usr/lib/libxml2.so.*']

@@ -1,0 +1,14 @@
+# BuildKit config for the local prototype only.
+#
+# clearcutt-factory runs BuildKit in a container on the default bridge network,
+# where "localhost:5001" is the BuildKit container itself, not the registry.
+# Image references must say localhost:5001 (that is what the host, cosign,
+# syft, grype, and go-containerregistry use), so BuildKit pulls them through a
+# mirror that reaches the registry via the podman host gateway, over plain HTTP.
+[registry."localhost:5001"]
+  mirrors = ["host.containers.internal:5001"]
+  http = true
+
+[registry."host.containers.internal:5001"]
+  http = true
+  insecure = true

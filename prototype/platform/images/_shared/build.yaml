@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Shared by every build (stack toolchain) image (extends: ../_shared/build.yaml).
+#
+# Stack steps run as the build image's user, and factory's generated build
+# stage starts with `mkdir -p /out` in /. A non-root build image (which
+# policy.requireNonRoot demands of every image) can't do that, so the
+# stack-workdirs tool ships /out and /src as world-writable sticky
+# directories. See FINDINGS.md P-2; remove this once factory runs the build
+# stage as root.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+metadata: {name: shared-build}
+spec:
+  packages: [ca-certificates-bundle]
+  tools:
+    - name: stack-workdirs
+      from: build
+      image: cgr.dev/chainguard/wolfi-base:latest
+      run: mkdir -p /out/out /out/src && chmod 1777 /out/out /out/src
+  labels:
+    org.opencontainers.image.source: https://github.com/clearcutt-showcase/platform
+  user: "65532"
