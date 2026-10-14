@@ -4,7 +4,14 @@ apiVersion: factory.clearcutt.dev/v1alpha1
 kind: Image
 metadata: {name: shared-run}
 spec:
-  packages: [ca-certificates-bundle, tzdata]
+  packages:
+    - ca-certificates-bundle
+    - tzdata
+    # OpenSSL 3 compatibility libraries (libcrypto.so.3, libssl.so.3) for apps
+    # that link them; the runtimes themselves use OpenSSL 4.0 from wolfi-base.
+    # The CVE drill holds these at a vulnerable build (scripts/drill.sh).
+    - libcrypto3
+    - libssl3
   labels:
     org.opencontainers.image.source: https://github.com/clearcutt-showcase/platform
   user: "65532"

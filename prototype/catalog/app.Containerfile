@@ -12,9 +12,9 @@
 # from a context staged with `clearcutt-factory render --context-dir`, where
 # $ANNOTATIONS (comma-separated) records the base for `clearcutt-factory rebase`:
 #   annotation-manifest[linux/amd64].org.opencontainers.image.base.name=localhost:5001/platform/run-python:3.14
-#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:e874f0200d5d6ca7521f2fcf12d42987b30f7697d81fb72934ccc647c3bc83e1
+#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:672b0bdcf02a17ae51625886042fcae0b0900190d5f651b43a460d44040d86ec
 #   annotation-manifest[linux/arm64].org.opencontainers.image.base.name=localhost:5001/platform/run-python:3.14
-#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:d6bc3e64c7a6fc5d21816cc523ca12634273c4555a206d5a13d1547971096f35
+#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:4889e07bc52ee872e7c566684544eed6e6012994655411291d82d116ce57739d
 
 ARG TARGETARCH
 
@@ -38,7 +38,7 @@ python3 -m pip install --no-deps --no-build-isolation --no-compile --target /out
 FACTORY_EOF
 
 # ---- app ----
-FROM localhost:5001/platform/run-python:3.14@sha256:16950a5844f37a07b2b19faf2e4c7be09dc320a95969ce39acaf2d450fc27c87
+FROM localhost:5001/platform/run-python:3.14@sha256:692d998c4aad0fd7183d82c63af64d7e1f24d1a7eda3cf7d7aef207484a71289
 COPY --link --from=build /out/ /app/
 ENV PORT="8080"
 ENV PYTHONDONTWRITEBYTECODE="1"

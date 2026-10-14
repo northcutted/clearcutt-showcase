@@ -12,9 +12,9 @@
 # from a context staged with `clearcutt-factory render --context-dir`, where
 # $ANNOTATIONS (comma-separated) records the base for `clearcutt-factory rebase`:
 #   annotation-manifest[linux/amd64].org.opencontainers.image.base.name=localhost:5001/platform/run-node:24
-#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:ccca5247d2e4177d104e59b94d82e44f8c41fe5698d4fcbed230fefe7951c728
+#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:6ec5ec67054a09deac37a7e86eca3dfa44d4ca393a455597a54d4bd350f1ab4d
 #   annotation-manifest[linux/arm64].org.opencontainers.image.base.name=localhost:5001/platform/run-node:24
-#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:944f5555d506de6448c00c2293f7d7ecb0021733e84541e938a6bafd3b6730b9
+#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:b7a74e62f1ecb8b3da8ecf36f33730e1f292ec24d4af366c5a9b9a16a6e3c830
 
 ARG TARGETARCH
 
@@ -47,7 +47,7 @@ cp -R dist node_modules package.json /out/
 FACTORY_EOF
 
 # ---- app ----
-FROM localhost:5001/platform/run-node:24@sha256:fea2afb1151b55e1bd179fc16df972a8afa6395a8d91e4d590d744b73830a5a9
+FROM localhost:5001/platform/run-node:24@sha256:ea6d8c16a81b9a7bd796bfe353dee91b9613e73f7c5905a0bc62a81d5f52f449
 COPY --link --from=build /out/ /app/
 ENV NODE_ENV="production"
 ENV PORT="8080"

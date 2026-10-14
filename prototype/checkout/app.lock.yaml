@@ -15,7 +15,7 @@ builder:
     digest: sha256:256c88bb066424045021090932d50be93c8e3f2ce3586707702a401b146f3e43
 base:
   ref: localhost:5001/platform/run-go:1
-  digest: sha256:ab4ea30c2ef4c48f55ed7f9272850465d0a1a65c6f37b1af35026305b7cad94d
+  digest: sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a
 app:
   stack: go
   stackDigest: sha256:77716475604b08e050f5951b3bb0f8588823a39a37d30b811b51f0fd4afa182f
@@ -26,5 +26,5 @@ app:
     ref: localhost:5001/platform/build-go:1
     digest: sha256:b4037b9637c2af4259c5358a49b69832c5f9443d35c6af625d5545ce0c2e56c9
   runPlatforms:
-    linux/amd64: sha256:a282667978fb85a3118544bd8e5733c06989e4a74ce3ca88fcaea6dd2b451664
-    linux/arm64: sha256:20a4943d84f2d1b34b9325c86c9f7289f0863c51f13c611852ee9e581f2a0e7d
+    linux/amd64: sha256:0817dbb5292b2ecefe56c550637f040de9331885f78aae6bd1aa2d537e7605e0
+    linux/arm64: sha256:47007eca050d2990d043eebce30ec44ef57f6beaa81f23891ca8969baf99fdf7
