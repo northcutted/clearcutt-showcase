@@ -7,7 +7,7 @@
 # (localhost:5001/tools/buildkit:v0.33.1-local@sha256:3bbbb45c8928d5617bd52feb5375a8c5cc9bcc62e1bf7a762f69d1270db43e13):
 #   buildctl build --frontend dockerfile.v0 --local context=. --local dockerfile=. \
 #     --opt platform=linux/amd64,linux/arm64 \
-#     --opt build-arg:SOURCE_DATE_EPOCH=1791849600 \
+#     --opt build-arg:SOURCE_DATE_EPOCH=1791936000 \
 #     --output type=oci,dest=image.tar,rewrite-timestamp=true
 # from a context staged with `clearcutt-factory render --context-dir`.
 
@@ -57,9 +57,9 @@ RUN apk add --no-cache --repositories-file /dev/null \
       libuuid=2.42.4-r0 \
       libxcrypt=4.5.2-r6 \
       libxcrypt-dev=4.5.2-r6 \
-      libxml2=2.13.6-r3 \
-      libxml2-dev=2.13.6-r3 \
-      libxml2-utils=2.13.6-r3 \
+      libxml2-16=2.15.4-r1 \
+      libxml2-dev=2.15.4-r1 \
+      libxml2-utils=2.15.4-r1 \
       libzstd1=1.5.7-r10 \
       linux-headers=7.2.10-r0 \
       make=4.4.1-r15 \
@@ -80,10 +80,10 @@ RUN apk add --no-cache --repositories-file /dev/null \
       py3.14-pip=26.2.1-r4 \
       py3.14-pip-base=26.2.1-r4 \
       py3.14-setuptools=84.0.0-r1 \
-      python-3.14=3.14.8_git20261008-r1 \
-      python-3.14-base=3.14.8_git20261008-r1 \
-      python-3.14-base-dev=3.14.8_git20261008-r1 \
-      python-3.14-dev=3.14.8_git20261008-r1 \
+      python-3.14=3.14.8_git20261014-r0 \
+      python-3.14-base=3.14.8_git20261014-r0 \
+      python-3.14-base-dev=3.14.8_git20261014-r0 \
+      python-3.14-dev=3.14.8_git20261014-r0 \
       readline=8.3-r3 \
       sqlite-libs=3.54.0-r0 \
       wolfi-base=1-r7 \

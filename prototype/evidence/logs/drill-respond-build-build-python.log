@@ -1,0 +1,31 @@
+building localhost:5001/platform/build-python for linux/amd64, linux/arm64
+built sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9
+  linux/amd64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && python3 -m pip --version && cc --version && pkg-config --modversion libxml-2.0 && test -w /out, 11.8s)
+  linux/arm64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && python3 -m pip --version && cc --version && pkg-config --modversion libxml-2.0 && test -w /out, 10.5s)
+  linux/amd64: 2 medium
+  linux/arm64: 2 medium
+pushed localhost:5001/platform/build-python@sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Pushing signature to: localhost:5001/platform/build-python
+Signing artifact...
+Signing artifact...
+Pushing signature to: localhost:5001/platform/build-python
+Signing artifact...
+Pushing signature to: localhost:5001/platform/build-python
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-python/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-python/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-python/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-python/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/build-python/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/platform/build-python@sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9 and attached its attestations
+wrote out/build-python/result.json

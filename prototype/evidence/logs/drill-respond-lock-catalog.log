@@ -1,0 +1,8 @@
+resolving image localhost:5001/tools/buildkit:v0.33.1-local
+resolving image docker/dockerfile:1
+resolving image cgr.dev/chainguard/wolfi-base:latest
+resolving image localhost:5001/platform/run-python:3.14
+resolving image localhost:5001/platform/build-python:3.14
+  build image localhost:5001/platform/build-python:3.14: sha256:56da89414c5d → sha256:39744f222a5b
+wrote catalog/app.lock.yaml
+wrote catalog/app.Containerfile

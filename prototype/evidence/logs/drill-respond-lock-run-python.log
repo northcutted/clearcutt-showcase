@@ -1,0 +1,10 @@
+fetching APKINDEX for x86_64 from https://apk.cgr.dev/chainguard
+fetching APKINDEX for aarch64 from https://apk.cgr.dev/chainguard
+  package libcrypto3: 3.6.3-r4 → 3.6.5-r2
+  package libssl3: 3.6.3-r4 → 3.6.5-r2
+  package libxml2-16: added 2.15.4-r1
+  package libxml2: removed (2.13.6-r3)
+  package python-3.14-base: 3.14.8_git20261008-r1 → 3.14.8_git20261014-r0
+  package python-3.14: 3.14.8_git20261008-r1 → 3.14.8_git20261014-r0
+wrote platform/images/run-python/image.lock.yaml
+wrote platform/images/run-python/image.Containerfile

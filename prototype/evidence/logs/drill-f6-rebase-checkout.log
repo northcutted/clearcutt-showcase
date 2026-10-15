@@ -1,0 +1,12 @@
+rebasing localhost:5001/apps/checkout@sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525 onto localhost:5001/platform/run-go:1 (sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a)
+  linux/amd64: localhost:5001/platform/run-go@sha256:61f9383c6d92ec1e17a39d29fb3bafca17d82360ac1ad17d51b34e323e540551 → sha256:0817dbb5292b2ecefe56c550637f040de9331885f78aae6bd1aa2d537e7605e0
+  linux/arm64: localhost:5001/platform/run-go@sha256:d2d2f1cb73bb4a7bc4405df353f17418776ccfc43ee24741185ae7330bfd19a6 → sha256:47007eca050d2990d043eebce30ec44ef57f6beaa81f23891ca8969baf99fdf7
+linux/amd64: safe to rebase
+linux/arm64: safe to rebase
+rebased sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96
+  linux/amd64: smoke test passed (GET :8080/healthz, 2.3s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 1s)
+  linux/amd64: 1 medium, 3 unknown
+  linux/arm64: 1 medium, 3 unknown
+localhost:5001/apps/checkout@sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96 is already published; moved its tags (latest)
+wrote out/checkout-rebase/result.json

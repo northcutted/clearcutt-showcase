@@ -7,19 +7,19 @@
 # (localhost:5001/tools/buildkit:v0.33.1-local@sha256:3bbbb45c8928d5617bd52feb5375a8c5cc9bcc62e1bf7a762f69d1270db43e13):
 #   buildctl build --frontend dockerfile.v0 --local context=. --local dockerfile=. \
 #     --opt platform=linux/amd64,linux/arm64 \
-#     --opt build-arg:SOURCE_DATE_EPOCH=1791849600 \
+#     --opt build-arg:SOURCE_DATE_EPOCH=1791936000 \
 #     --output type=oci,dest=image.tar,rewrite-timestamp=true,$ANNOTATIONS
 # from a context staged with `clearcutt-factory render --context-dir`, where
 # $ANNOTATIONS (comma-separated) records the base for `clearcutt-factory rebase`:
 #   annotation-manifest[linux/amd64].org.opencontainers.image.base.name=localhost:5001/platform/run-python:3.14
-#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:1fb9a536b3677c988d19366a43cf641a4ca7b24526509c3a94801d608d57461a
+#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:d40eda1b335cb4a086e819d320122c2254fcbd5d243bce59ae562e3bc4117a87
 #   annotation-manifest[linux/arm64].org.opencontainers.image.base.name=localhost:5001/platform/run-python:3.14
-#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:8ab8b89db274044c280cdceafb7aa58c9971b1ac126054b7dfbf903ae64588a7
+#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:f3d11b83abb97f146fd79466a4150e09b228e44042e51fc41d13f1f7c94fa3fe
 
 ARG TARGETARCH
 
 # ---- build: stack python ----
-FROM localhost:5001/platform/build-python:3.14@sha256:56da89414c5d86aa3b0380c22f7bd319c5596426cb17e8dca7ea4afa0725027f AS build
+FROM localhost:5001/platform/build-python:3.14@sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9 AS build
 ARG TARGETOS TARGETARCH SOURCE_DATE_EPOCH
 ENV APP_NAME="catalog"
 ENV PIP_DISABLE_PIP_VERSION_CHECK="1"
@@ -38,7 +38,7 @@ python3 -m pip install --no-deps --no-build-isolation --no-compile --target /out
 FACTORY_EOF
 
 # ---- app ----
-FROM localhost:5001/platform/run-python:3.14@sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7
+FROM localhost:5001/platform/run-python:3.14@sha256:17210815e0e98a9ea1d881e41cd8f8ad5e1b6ad5a041fdbe8e3b52e4598d1894
 COPY --link --from=build /out/ /app/
 ENV PORT="8080"
 ENV PYTHONDONTWRITEBYTECODE="1"

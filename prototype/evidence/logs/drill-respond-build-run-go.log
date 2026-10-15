@@ -1,0 +1,8 @@
+building localhost:5001/platform/run-go for linux/amd64, linux/arm64
+built sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a
+  linux/amd64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && test -s /etc/ssl/certs/ca-certificates.crt && test -e /usr/share/zoneinfo/UTC, 1.6s)
+  linux/arm64: smoke test passed (/bin/sh -c test "$(id -u)" = 65532 && test -s /etc/ssl/certs/ca-certificates.crt && test -e /usr/share/zoneinfo/UTC, 900ms)
+  linux/amd64: no known vulnerabilities
+  linux/arm64: no known vulnerabilities
+localhost:5001/platform/run-go@sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a is already published; moved its tags (1)
+wrote out/run-go/result.json

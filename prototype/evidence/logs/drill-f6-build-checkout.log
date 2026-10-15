@@ -1,0 +1,31 @@
+building localhost:5001/apps/checkout for linux/amd64, linux/arm64
+built sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525
+  linux/amd64: smoke test passed (GET :8080/healthz, 2.1s)
+  linux/arm64: smoke test passed (GET :8080/healthz, 1.1s)
+  linux/amd64: 4 critical, 22 high, 13 medium, 8 low, 5 unknown
+  linux/arm64: 4 critical, 22 high, 13 medium, 8 low, 5 unknown
+pushed localhost:5001/apps/checkout@sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Pushing signature to: localhost:5001/apps/checkout
+Signing artifact...
+Signing artifact...
+Pushing signature to: localhost:5001/apps/checkout
+Signing artifact...
+Pushing signature to: localhost:5001/apps/checkout
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/f6/checkout/attestations/recipe.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/f6/checkout/attestations/sbom-linux-amd64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/f6/checkout/attestations/vuln-linux-amd64.predicate.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/f6/checkout/attestations/sbom-linux-arm64.cdx.json
+Signing artifact...
+Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services
+Using payload from: /Users/eddie/Development/clearcutt/clearcutt-showcase/prototype/out/f6/checkout/attestations/vuln-linux-arm64.predicate.json
+Signing artifact...
+signed localhost:5001/apps/checkout@sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525 and attached its attestations
+wrote out/f6/checkout/result.json

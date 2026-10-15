@@ -1,0 +1,101 @@
+== drill respond 2026-10-14T23:59:09Z
+     prototype/platform/images/_shared/run.yaml        | 4 ++--
+     prototype/platform/images/build-python/image.yaml | 3 +--
+     prototype/platform/images/run-python/image.yaml   | 2 +-
+     3 files changed, 4 insertions(+), 5 deletions(-)
+[t+  12s] respond-lock-run-go                exit=0  12s
+      package libcrypto3: 3.6.3-r4 → 3.6.5-r2
+      package libssl3: 3.6.3-r4 → 3.6.5-r2
+[t+  98s] respond-build-run-go               exit=0  86s
+    built sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a
+    localhost:5001/platform/run-go@sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a is already published; moved its tags (1)
+[t+ 109s] respond-lock-run-python            exit=0  11s
+      package libcrypto3: 3.6.3-r4 → 3.6.5-r2
+      package libssl3: 3.6.3-r4 → 3.6.5-r2
+      package libxml2-16: added 2.15.4-r1
+      package libxml2: removed (2.13.6-r3)
+[t+ 152s] respond-build-run-python           exit=0  43s
+    built sha256:17210815e0e98a9ea1d881e41cd8f8ad5e1b6ad5a041fdbe8e3b52e4598d1894
+    pushed localhost:5001/platform/run-python@sha256:17210815e0e98a9ea1d881e41cd8f8ad5e1b6ad5a041fdbe8e3b52e4598d1894
+[t+ 161s] respond-lock-run-node              exit=0   9s
+      package libcrypto3: 3.6.3-r4 → 3.6.5-r2
+      package libssl3: 3.6.3-r4 → 3.6.5-r2
+[t+ 208s] respond-build-run-node             exit=0  47s
+    built sha256:aab26bc1afe525b60c8617ec09e8d3102ba0fbcd2813c195571ee56bee820fa2
+    pushed localhost:5001/platform/run-node@sha256:aab26bc1afe525b60c8617ec09e8d3102ba0fbcd2813c195571ee56bee820fa2
+[t+ 219s] respond-lock-build-python          exit=0  10s
+      package libxml2-16: added 2.15.4-r1
+      package libxml2-dev: 2.13.6-r3 → 2.15.4-r1
+      package libxml2-utils: 2.13.6-r3 → 2.15.4-r1
+      package libxml2: removed (2.13.6-r3)
+[t+ 365s] respond-build-build-python         exit=0 146s
+    built sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9
+    pushed localhost:5001/platform/build-python@sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9
+-- fleet: rebase --push --update-lock
+[t+ 378s] respond-rebase-checkout            exit=0  13s
+    linux/amd64: safe to rebase
+    linux/arm64: safe to rebase
+    rebased sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96
+      linux/amd64: smoke test passed (GET :8080/healthz, 2.1s)
+      linux/arm64: smoke test passed (GET :8080/healthz, 900ms)
+      base localhost:5001/platform/run-go:1: sha256:956628cac70b → sha256:ae37fa636410
+[t+ 405s] respond-rebase-storefront          exit=0  27s
+    linux/amd64: safe to rebase
+    linux/arm64: safe to rebase
+    rebased sha256:c176b7d92277c5ce2534dcfa6aac90b904148262879dcf7d87771a22c9ba93a1
+      linux/amd64: smoke test passed (GET :8080/healthz, 5.4s)
+      linux/arm64: smoke test passed (GET :8080/healthz, 3s)
+    pushed localhost:5001/apps/storefront@sha256:c176b7d92277c5ce2534dcfa6aac90b904148262879dcf7d87771a22c9ba93a1
+      base localhost:5001/platform/run-node:24: sha256:2081f203574e → sha256:aab26bc1afe5
+[t+ 407s] respond-rebase-catalog             exit=1   2s
+      incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds.cpython-314-x86_64-linux-gnu.so needs libxml2.so.2
+      incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds.cpython-314-aarch64-linux-gnu.so needs libxml2.so.2
+      base localhost:5001/platform/run-python:3.14: sha256:3718435d754f → sha256:17210815e0e9
+    error: the new base may break this image; rebuild it, or pass --force to rebase anyway
+    catalog/app.lock.yaml now pins the new base; build the app to move it
+-- F3: catalog's lock after the refused rebase (base moved; build image?)
+    3c3
+    <   digest: sha256:3718435d754fa5d9beb97ce1c50483a110e86c5f90d27752a4e19235076b07a7
+    ---
+    >   digest: sha256:17210815e0e98a9ea1d881e41cd8f8ad5e1b6ad5a041fdbe8e3b52e4598d1894
+-- F3: rebuild catalog from that lock (what merging the rebuild PR does today)
+[t+ 425s] respond-f3-build-catalog           exit=1  18s
+    built sha256:74a3c62ff708cfdebd6a5a72ffb727bd5a53e130e2b96feefb9060f023dcc177
+    error: smoke test (GET :8080/healthz) failed on linux/amd64 (skip with --no-test): the container exited before answering /healthz
+    ImportError: libxml2.so.2: cannot open shared object file: No such file or directory
+-- fix: re-resolve the build image too (lock --update), rebuild, publish
+[t+ 426s] respond-lock-catalog               exit=0   1s
+      build image localhost:5001/platform/build-python:3.14: sha256:56da89414c5d → sha256:39744f222a5b
+[t+ 471s] respond-build-catalog              exit=0  45s
+    built sha256:dd866467a7a5c516c8885c3c6e1e33ec3fe1f5ca93191d47bcb685374d870dc7
+      linux/amd64: smoke test passed (GET :8080/healthz, 4.5s)
+      linux/arm64: smoke test passed (GET :8080/healthz, 2.4s)
+    pushed localhost:5001/apps/catalog@sha256:dd866467a7a5c516c8885c3c6e1e33ec3fe1f5ca93191d47bcb685374d870dc7
+-- verify the rebased apps (repeat the recorded rebase)
+[t+ 472s] respond-verify-checkout            exit=0   0s
+    reproducible: rebase gives sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96 again
+[t+ 472s] respond-verify-storefront          exit=0   0s
+    reproducible: rebase gives sha256:c176b7d92277c5ce2534dcfa6aac90b904148262879dcf7d87771a22c9ba93a1 again
+== after
+holds in platform/: released
+localhost:5001/platform/run-go:1 → sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a
+    libcrypto3=3.6.5-r2, libssl3=3.6.5-r2
+localhost:5001/platform/run-python:3.14 → sha256:17210815e0e98a9ea1d881e41cd8f8ad5e1b6ad5a041fdbe8e3b52e4598d1894
+    libcrypto3=3.6.5-r2, libssl3=3.6.5-r2, libxml2-16=2.15.4-r1
+localhost:5001/platform/run-node:24 → sha256:aab26bc1afe525b60c8617ec09e8d3102ba0fbcd2813c195571ee56bee820fa2
+    libcrypto3=3.6.5-r2, libssl3=3.6.5-r2
+localhost:5001/platform/build-python:3.14 → sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9
+    libxml2-16=2.15.4-r1, libxml2-dev=2.15.4-r1, libxml2-utils=2.15.4-r1
+localhost:5001/apps/checkout:latest → sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96
+    lock: base ae37fa636410, build image b4037b9637c2
+    libcrypto3=3.6.5-r2, libssl3=3.6.5-r2
+    No vulnerabilities found
+localhost:5001/apps/storefront:latest → sha256:c176b7d92277c5ce2534dcfa6aac90b904148262879dcf7d87771a22c9ba93a1
+    lock: base aab26bc1afe5, build image e6dac01a7237
+    libcrypto3=3.6.5-r2, libssl3=3.6.5-r2
+    No vulnerabilities found
+localhost:5001/apps/catalog:latest → sha256:dd866467a7a5c516c8885c3c6e1e33ec3fe1f5ca93191d47bcb685374d870dc7
+    lock: base 17210815e0e9, build image 39744f222a5b
+    libcrypto3=3.6.5-r2, libssl3=3.6.5-r2, libxml2-16=2.15.4-r1
+    No vulnerabilities found
+== responded in 500s

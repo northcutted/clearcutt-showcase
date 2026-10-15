@@ -7,14 +7,14 @@
 # (localhost:5001/tools/buildkit:v0.33.1-local@sha256:3bbbb45c8928d5617bd52feb5375a8c5cc9bcc62e1bf7a762f69d1270db43e13):
 #   buildctl build --frontend dockerfile.v0 --local context=. --local dockerfile=. \
 #     --opt platform=linux/amd64,linux/arm64 \
-#     --opt build-arg:SOURCE_DATE_EPOCH=1791849600 \
+#     --opt build-arg:SOURCE_DATE_EPOCH=1791936000 \
 #     --output type=oci,dest=image.tar,rewrite-timestamp=true,$ANNOTATIONS
 # from a context staged with `clearcutt-factory render --context-dir`, where
 # $ANNOTATIONS (comma-separated) records the base for `clearcutt-factory rebase`:
 #   annotation-manifest[linux/amd64].org.opencontainers.image.base.name=localhost:5001/platform/run-node:24
-#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:f58303968314e1f22f4b8673c17f3ab7758737fdd3c56a0edcd16fc6d39668df
+#   annotation-manifest[linux/amd64].org.opencontainers.image.base.digest=sha256:05c2c25d136758aafb527cb4ddbeb3554de693f70b7796a888c6805c15cd947c
 #   annotation-manifest[linux/arm64].org.opencontainers.image.base.name=localhost:5001/platform/run-node:24
-#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:c22c70a2d04b50cad2ec63023c6a557acfa2f05dfc48fc65254d13f5252842e8
+#   annotation-manifest[linux/arm64].org.opencontainers.image.base.digest=sha256:86ff7e71dd323be6899204071f7b39fff46acfcbe94cbb64357a0ebb063acc37
 
 ARG TARGETARCH
 
@@ -47,7 +47,7 @@ cp -R dist node_modules package.json /out/
 FACTORY_EOF
 
 # ---- app ----
-FROM localhost:5001/platform/run-node:24@sha256:2081f203574e0fe50670aad9016df365b2091dda4a817dd37f5ae4fe115217a7
+FROM localhost:5001/platform/run-node:24@sha256:aab26bc1afe525b60c8617ec09e8d3102ba0fbcd2813c195571ee56bee820fa2
 COPY --link --from=build /out/ /app/
 ENV NODE_ENV="production"
 ENV PORT="8080"

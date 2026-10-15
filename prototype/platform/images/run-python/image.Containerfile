@@ -7,7 +7,7 @@
 # (localhost:5001/tools/buildkit:v0.33.1-local@sha256:3bbbb45c8928d5617bd52feb5375a8c5cc9bcc62e1bf7a762f69d1270db43e13):
 #   buildctl build --frontend dockerfile.v0 --local context=. --local dockerfile=. \
 #     --opt platform=linux/amd64,linux/arm64 \
-#     --opt build-arg:SOURCE_DATE_EPOCH=1791849600 \
+#     --opt build-arg:SOURCE_DATE_EPOCH=1791936000 \
 #     --output type=oci,dest=image.tar,rewrite-timestamp=true
 # from a context staged with `clearcutt-factory render --context-dir`.
 
@@ -30,15 +30,15 @@ RUN apk add --no-cache --repositories-file /dev/null \
       libbrotlienc1=1.2.0-r6 \
       libbz2-1=1.0.8-r25 \
       libcrypt1-2.44=2.44-r8 \
-      libcrypto3=3.6.3-r4 \
+      libcrypto3=3.6.5-r2 \
       libexpat1=2.9.0-r0 \
       libffi=3.8.0-r2 \
       libgcc=16.2.0-r1 \
-      libssl3=3.6.3-r4 \
+      libssl3=3.6.5-r2 \
       libstdc++=16.2.0-r1 \
       libuuid=2.42.4-r0 \
       libxcrypt=4.5.2-r6 \
-      libxml2=2.13.6-r3 \
+      libxml2-16=2.15.4-r1 \
       libzstd1=1.5.7-r10 \
       mpdecimal=4.0.1-r4 \
       ncurses=6.6.20261010-r0 \
@@ -47,8 +47,8 @@ RUN apk add --no-cache --repositories-file /dev/null \
       openssl-4.0-libssl=4.0.3-r6 \
       openssl-provider-legacy-allowed=4.0.3-r1 \
       py3-pip-wheel=26.2.1-r4 \
-      python-3.14=3.14.8_git20261008-r1 \
-      python-3.14-base=3.14.8_git20261008-r1 \
+      python-3.14=3.14.8_git20261014-r0 \
+      python-3.14-base=3.14.8_git20261014-r0 \
       readline=8.3-r3 \
       sqlite-libs=3.54.0-r0 \
       tzdata=2026e-r0 \

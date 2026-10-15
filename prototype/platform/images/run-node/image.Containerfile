@@ -7,7 +7,7 @@
 # (localhost:5001/tools/buildkit:v0.33.1-local@sha256:3bbbb45c8928d5617bd52feb5375a8c5cc9bcc62e1bf7a762f69d1270db43e13):
 #   buildctl build --frontend dockerfile.v0 --local context=. --local dockerfile=. \
 #     --opt platform=linux/amd64,linux/arm64 \
-#     --opt build-arg:SOURCE_DATE_EPOCH=1791849600 \
+#     --opt build-arg:SOURCE_DATE_EPOCH=1791936000 \
 #     --output type=oci,dest=image.tar,rewrite-timestamp=true
 # from a context staged with `clearcutt-factory render --context-dir`.
 
@@ -20,7 +20,7 @@ RUN apk add --no-cache --repositories-file /dev/null \
       --repository https://apk.cgr.dev/chainguard \
       apk-tools=2.14.10-r17 \
       busybox=1.38.0-r3 \
-      c-ares=1.34.8-r3 \
+      c-ares=1.34.8-r4 \
       ca-certificates-bundle=20260909-r2 \
       glibc-2.44=2.44-r8 \
       glibc-2.44-locale-posix=2.44-r8 \
@@ -30,15 +30,15 @@ RUN apk add --no-cache --repositories-file /dev/null \
       libbrotlidec1=1.2.0-r6 \
       libbrotlienc1=1.2.0-r6 \
       libcrypt1-2.44=2.44-r8 \
-      libcrypto3=3.6.3-r4 \
+      libcrypto3=3.6.5-r2 \
       libgcc=16.2.0-r1 \
       libicu78=78.3-r4 \
       libnghttp2-14=1.70.0-r5 \
-      libssl3=3.6.3-r4 \
+      libssl3=3.6.5-r2 \
       libstdc++=16.2.0-r1 \
       libuv=1.53.0-r0 \
       libxcrypt=4.5.2-r6 \
-      nodejs-24=24.21.0-r4 \
+      nodejs-24=24.22.0-r0 \
       openssl-4.0-libcrypto=4.0.3-r6 \
       openssl-4.0-libssl=4.0.3-r6 \
       openssl-provider-legacy-allowed=4.0.3-r1 \

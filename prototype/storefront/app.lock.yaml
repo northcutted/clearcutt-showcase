@@ -2,7 +2,7 @@
 apiVersion: factory.clearcutt.dev/v1alpha1
 kind: Lock
 inputsDigest: sha256:cd2ecebfed212e76afca3cbee838f46b8784314b48ea106fcda15de6c3942e8b
-sourceDateEpoch: 1791849600
+sourceDateEpoch: 1791936000
 builder:
   buildkit:
     ref: localhost:5001/tools/buildkit:v0.33.1-local
@@ -15,7 +15,7 @@ builder:
     digest: sha256:256c88bb066424045021090932d50be93c8e3f2ce3586707702a401b146f3e43
 base:
   ref: localhost:5001/platform/run-node:24
-  digest: sha256:2081f203574e0fe50670aad9016df365b2091dda4a817dd37f5ae4fe115217a7
+  digest: sha256:aab26bc1afe525b60c8617ec09e8d3102ba0fbcd2813c195571ee56bee820fa2
 app:
   stack: node
   stackDigest: sha256:17fb0ac0a5c09ea4976837c28a2a98ce3360b88e2bc3521e6371f07b3ca8e470
@@ -26,5 +26,5 @@ app:
     ref: localhost:5001/platform/build-node:24
     digest: sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a
   runPlatforms:
-    linux/amd64: sha256:f58303968314e1f22f4b8673c17f3ab7758737fdd3c56a0edcd16fc6d39668df
-    linux/arm64: sha256:c22c70a2d04b50cad2ec63023c6a557acfa2f05dfc48fc65254d13f5252842e8
+    linux/amd64: sha256:05c2c25d136758aafb527cb4ddbeb3554de693f70b7796a888c6805c15cd947c
+    linux/arm64: sha256:86ff7e71dd323be6899204071f7b39fff46acfcbe94cbb64357a0ebb063acc37

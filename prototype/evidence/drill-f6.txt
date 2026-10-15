@@ -1,0 +1,19 @@
+== factory#15 (F6): a push to checkout's main before its pin PR merges
+latest now (patched, rebased): sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96
+[t+   0s] f6-render-checkout                 exit=0   0s
+[t+  26s] f6-build-checkout                  exit=0  26s
+    built sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525
+    pushed localhost:5001/apps/checkout@sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525
+latest after the push: sha256:fbb41265ad829dfa2183ba5c3277a52973f4b58fc9a4e87a4fdb00fd762b7525
+[t+  27s] f6-render-back-checkout            exit=0   0s
+-- recover: the fleet's next run rebases it again
+[t+  39s] f6-rebase-checkout                 exit=0  12s
+    linux/amd64: safe to rebase
+    linux/arm64: safe to rebase
+    rebased sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96
+    localhost:5001/apps/checkout@sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96 is already published; moved its tags (latest)
+latest after the rebase: sha256:ccf63a29fd08a861731e7ad120f380b59720aa335da41d83fe8ef402a4b1ef96
+NAME        INSTALLED  FIXED IN  TYPE  VULNERABILITY        SEVERITY  EPSS         RISK  
+libcrypto3  3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (53rd)  0.5   
+libssl3     3.6.3-r4   3.6.3-r5  apk   CVE-2026-14456       High      0.7% (53rd)  0.5   
+libcrypto3  3.6.3-r4   3.6.3-r5  apk   GHSA-9x89-v382-mjh7  Unknown   N/A          N/A   
