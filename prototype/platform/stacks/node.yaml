@@ -20,7 +20,7 @@ spec:
     - run: npm ci
     - run: npm run build
     # --no-save: the source is copied root-owned, and the build user (65532)
-    # can't rewrite package-lock.json (FINDINGS.md P-2).
+    # can't rewrite package-lock.json (FINDINGS.md F9).
     - run: npm prune --omit=dev --no-save
     - run: cp -R dist node_modules package.json /out/
   user: "65532"

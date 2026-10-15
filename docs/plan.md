@@ -10,8 +10,10 @@ It is also the first real cross-repository consumer of
 [clearcutt-factory](https://github.com/northcutted/clearcutt-factory). Every gap
 it hits becomes a focused fix upstream or an issue on the tool that owns it.
 
-Status: **proposal**. Nothing has been created on GitHub yet. Open decisions
-are collected in [§10](#10-decisions-needed).
+Status: **proposal; phase 1 (local prototype) done**. Nothing has been
+created on GitHub yet. The prototype is in [`prototype/`](../prototype/README.md)
+and what it found in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md). Open
+decisions are collected in [§10](#10-decisions-needed).
 
 ## 1. Organization and repositories
 
@@ -63,10 +65,15 @@ non-root `65532`, and smoke-tested on both platforms. Shared settings live in
 |---|---|---|
 | `build-go` | `go-1.27`, `git` | Stack build image. Cross-compiles. |
 | `run-go` | `ca-certificates-bundle`, `tzdata` | Static Go binaries need nothing else. |
-| `build-python` | `python-3.14`, `py3.14-pip`, `py3.14-setuptools`, `build-base`, `pkgconf`, `libxml2-dev` | Builds wheels and C extensions. |
-| `run-python` | `python-3.14`, `ca-certificates-bundle`, `tzdata`, `libxml2` | `libxml2` is here because catalog asked for it. Anything an app needs from the OS goes in the run image. |
+| `build-python` | `python-3.14`, `python-3.14-dev`, `py3.14-pip`, `py3.14-setuptools`, `build-base`, `pkgconf`, `libxml2-dev` | Builds wheels and C extensions (`python-3.14-dev` has `Python.h`). |
+| `run-python` | `python-3.14`, `ca-certificates-bundle`, `tzdata`, `libxml2-16` | `libxml2-16` (`libxml2.so.16`) is here because catalog asked for it; the plain `libxml2` package is now empty (W2). Anything an app needs from the OS goes in the run image. |
 | `build-node` | `nodejs-24`, `npm` | |
 | `run-node` | `nodejs-24`, `ca-certificates-bundle`, `tzdata` | |
+
+Every run image also ships `libcrypto3` and `libssl3` (OpenSSL 3 compatibility
+libraries; wolfi-base and the runtimes use OpenSSL 4.0), which is what the
+drill holds (W1). The build images are non-root too, which today needs a
+workaround (F9).
 
 | Stack | Build → run | Steps (in `/src`, output to `/out`) |
 |---|---|---|
@@ -100,17 +107,14 @@ workflow, the certificate's SAN names the *called* workflow (factory's
 same SAN. Trust therefore has to bind the caller repository too, through the
 GitHub Workflow Repository or Source Repository Owner extensions.
 
-**Factory today.** Factory v0.1.0 doesn't handle this. `init` writes
+**Factory today.** Factory v0.1.0 didn't handle this: `init` wrote
 `certificateIdentityRegexp: ^https://github\.com/<caller>/`, which never
-matches a reusable-workflow signature, with three consequences:
-
-- `verify --image` fails in the second-runner and fleet jobs;
-- `publish` can't see the existing attestations, so it republishes unchanged
-  images on every run;
-- `policy.requireSignedStacks` checks stacks against the same identity, so a
-  stack signed by `platform` can't pass in an app repository.
-
-See [§8](#8-what-each-tool-must-provide) (F1, F2).
+matches a reusable-workflow signature, so `verify --image` failed in the
+second-runner and fleet jobs, `publish` republished unchanged images, and
+`policy.requireSignedStacks` checked stacks against the image identity.
+v0.1.1 fixes both (F1, F2): `sourceRepository` (or `sourceMatchesImage`)
+binds the caller repository, and `signing.stacks` names the stack signer.
+Phase 1 exercised the stack signer with key pairs (one per role).
 
 **The org profile we want.** The platform team owns it. Each app repo carries a
 copy until factory can reference a published one (F5):
@@ -121,7 +125,7 @@ signing:
   verify:                      # this repository's images
     certificateIdentityRegexp: ^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet)\.yml@refs/tags/v0\.\d+\.\d+$
     certificateOIDCIssuer: https://token.actions.githubusercontent.com
-    githubWorkflowRepository: clearcutt-showcase/checkout   # F1 (today: args: [--certificate-github-workflow-repository, …])
+    sourceRepository: https://github.com/clearcutt-showcase/checkout   # F1, v0.1.1
   stacks:                      # F2: who may sign the stacks apps build on
     certificateIdentity: https://github.com/clearcutt-showcase/platform/.github/workflows/stacks.yml@refs/heads/main
     certificateOIDCIssuer: https://token.actions.githubusercontent.com
@@ -230,7 +234,8 @@ this is designed now and built when they are ready.
 **Inventory: `showcase/estate/estate.yaml`.**
 - Sources: `ghcr.io/clearcutt-showcase/{platform,apps,stacks}/*` (enumerated
   through the GitHub Packages API, V3), plus the upstream
-  `cgr.dev/chainguard/wolfi-base`.
+  `cgr.dev/chainguard/wolfi-base` once V10 is fixed (with it observed today,
+  apps are attributed to wolfi-base instead of their run image).
 - Several tags per base repository, so drift is measurable.
 
 **Policy.**
@@ -258,19 +263,29 @@ to `https://clearcutt-showcase.github.io/showcase/`.
 ## 8. What each tool must provide
 
 Issues are filed on the owning repositories; links are in [`issues.md`](issues.md).
+Phase 1 added F9–F16, V8–V12, and P7; the evidence, repro steps, and
+severities are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md).
 
 **clearcutt-factory.** I may open focused PRs here.
 
 | # | Gap | Kind | Status |
 |---|---|---|---|
-| F1 [#11](https://github.com/northcutted/clearcutt-factory/issues/11) | Reusable-workflow signatures carry factory's SAN. `init`'s identity never matches, which breaks `verify --image` (reproduce, fleet) and makes `publish` republish unchanged images. Needs the caller-repository binding (`githubWorkflowRepository`) and a correct `init` template. | bug | Confirmed in code. PR first. |
-| F2 [#12](https://github.com/northcutted/clearcutt-factory/issues/12) | `requireSignedStacks` verifies stacks with the image identity. Stacks are published from another repository, so they need their own signer (`signing.stacks`). | gap | Confirmed in code. PR. |
-| F3 | When a rebase is refused, `--update-lock` moves only the run image. The rebuild then uses the old build image and can link against libraries the new run image lacks (the drill's case). The rebuild PR should re-resolve the stack's build image too. | gap | Expected; confirm in the drill prototype, then PR. |
+| F1 [#11](https://github.com/northcutted/clearcutt-factory/issues/11) | Reusable-workflow signatures carry factory's SAN. `init`'s identity never matches, which breaks `verify --image` (reproduce, fleet) and makes `publish` republish unchanged images. Needs the caller-repository binding (`githubWorkflowRepository`) and a correct `init` template. | bug | Fixed in v0.1.1. |
+| F2 [#12](https://github.com/northcutted/clearcutt-factory/issues/12) | `requireSignedStacks` verifies stacks with the image identity. Stacks are published from another repository, so they need their own signer (`signing.stacks`). | gap | Fixed in v0.1.1; phase 1 exercised `signing.stacks` with a separate stack key. |
+| F3 | When a rebase is refused, `--update-lock` moves only the run image. The rebuild then uses the old build image and can link against libraries the new run image lacks (the drill's case). The rebuild PR should re-resolve the stack's build image too. | gap | **Confirmed in phase 1** (the rebuild links `libxml2.so.2` onto a run image without it). Fix: [PR #30](https://github.com/northcutted/clearcutt-factory/pull/30) (open). |
 | F4 [#13](https://github.com/northcutted/clearcutt-factory/issues/13) | Cross-repository fleet: callers can't tell what `images.yml` published (no outputs), and nothing notifies dependents. | feature | Prototype in the showcase, then propose. |
 | F5 [#14](https://github.com/northcutted/clearcutt-factory/issues/14) | One org profile shared across repositories (publish and reference it, signed, like stacks), so app repos can't drift from or weaken it. | feature | Issue. |
-| F6 [#15](https://github.com/northcutted/clearcutt-factory/issues/15) | Until the pin PR merges, any push to an app's `main` rebuilds from the old lock. `publish` finds that digest "already published" and **moves `latest` back to the unpatched image**. | hazard | Confirmed in code; reproduce, then issue/PR. |
+| F6 [#15](https://github.com/northcutted/clearcutt-factory/issues/15) | Until the pin PR merges, any push to an app's `main` rebuilds from the old lock. `publish` finds that digest "already published" and **moves `latest` back to the unpatched image**. | hazard | **Reproduced in phase 1** (`drill.sh f6`). Fix: [PR #32](https://github.com/northcutted/clearcutt-factory/pull/32) (open). |
 | F7 [#16](https://github.com/northcutted/clearcutt-factory/issues/16) | The second-runner reproduction is only a CI job result. Attest it, so verifiers and the portal can show "independently reproduced". | feature | Issue. |
 | F8 [#17](https://github.com/northcutted/clearcutt-factory/issues/17) | Reusable workflows only take a static `CLEARCUTT_BOT_TOKEN`. Support GitHub App credentials (`app-id` and private key) for short-lived tokens. | feature | Issue. |
+| F9 | `requireNonRoot` applies to stack build images, but the app build stage runs the steps as that user and starts with `mkdir -p /out` in `/`; source and cache mounts are root-owned. A non-root build image breaks every app build. Run the build stage as root (it never ships). | bug | High. Phase 1 works around it. To file. |
+| F10 | A rebased image never equals the rebuild of its pinned lock: the rebase keeps the base's layer-descriptor annotations (`buildkit/rewritten-timestamp`); a build drops them. Every pin PR then republishes identical content under a new digest. | bug | Medium. To file. |
+| F11 | The containerized BuildKit can't be given a `buildkitd.toml` or network, so it can't pull from a local or plain-HTTP registry. | gap | Medium (local and private registries). To file. |
+| F12 | Key mode has one signing key per profile; `stack push` can't sign as the stack signer. | gap | Low. |
+| F13 | Trust-policy `key:` paths resolve against the working directory, not the policy file (with V9). | bug | Low. |
+| F14 | factory's own `app.lock.yaml` and `app.Containerfile` are in the app's build context by default, so a pin PR changes the context. | gap | Low. |
+| F15 | The documented `--tlog-upload=false` is deprecated in cosign 3 (use a signing config). | docs | Low. |
+| F16 | `stack push` re-pushes and re-signs an unchanged stack; signatures pile up. | gap | Low. |
 
 **clearcutt-verify** (issues [#48–#52](https://github.com/northcutted/clearcutt-verify/issues); mapping in issues.md):
 
@@ -283,15 +298,30 @@ Issues are filed on the owning repositories; links are in [`issues.md`](issues.m
 | V5 | A machine-readable "dependents of base repository X" output with source repositories, to drive cross-repository rebases. |
 | V6 | CI distribution: signed release binaries and a GitHub Action, plus persisted history between runs. |
 | V7 | Reproducibility: consume factory's reproduction evidence (F7), or rebuild. Distinguish `recipe-rebuild` from `rebase-repeat`. |
+| V8 | Verify key-signed evidence made without a transparency log (signer-level cosign args, or `tlog: false`). Today every check fails with a misleading "not signed by a trusted signer". |
+| V9 | Resolve trust-policy `key:` paths against the policy file. |
+| V10 | **Bug (High):** with an upstream base observed, apps are attributed to it (shortest layer prefix, first alphabetically) instead of their run image; `estate dependents` of a run image is empty. Prefer the longest layer prefix. |
+| V11 | Rebased apps lose `stackRef`/`stackDigest`, so `stacks` is null and stack signatures go unchecked once the fleet has rebased. |
+| V12 | `--reproduce` ignores key signers (code reading; unconfirmed). |
 
-**clearcutt-portal.** The repository doesn't exist yet; these will be filed
-once it does.
+**clearcutt-portal** ([northcutted/clearcutt-portal](https://github.com/northcutted/clearcutt-portal)). Not filed yet.
 - P1: build from a report bundle plus history.
 - P2: a GitHub Pages action.
 - P3: per-image evidence pages with copy-paste verify commands.
 - P4: the base graph.
 - P5: package search ("who ships libxml2 < 2.14").
 - P6: a timeline that diffs reports (the drill before and after).
+- P7: show what verify's current contract adds (stacks and stack signatures,
+  `packagesSource`, per-image history); the portal's contract copy is older.
+
+Phase 1 built a site from a local report bundle with no network: overview,
+per-image evidence, bases, package pages (much of P5), and history (P6).
+
+**Upstream (W1, W2).** grype matches nothing in Wolfi's OpenSSL 4.0 packages
+or its libxml2 2.13.x, so the drill holds the OpenSSL 3 compatibility
+libraries (visible: CVE-2026-14456, High) and detects libxml2 2.13 from the
+package index rather than the scanner. Wolfi package names have moved
+(`openssl-4.0-*`, `libxml2-16`).
 
 ## 9. Phases
 
@@ -299,7 +329,19 @@ once it does.
 1. **Local prototype.** Under `~/…`, with a local registry container. Build every
    image, the stacks, and the apps. Prove the non-Go stacks reproduce under
    emulation. Rehearse the drill: safe rebases, catalog's refusal, and F3.
-2. **Factory fixes.** F1 and F2 (and F3 and F6 if confirmed) as focused PRs with
+   **Done (2026-10-14)** in [`prototype/`](../prototype/README.md), branch
+   `prototype/phase-1`: all 12 artifacts built, signed, and published; all 9
+   images reproduce from their signed recipes (python and node under QEMU);
+   rebases take 13–29 s and repeat from their records; the drill runs end to
+   end with `prototype/scripts/drill.sh`; F3 confirmed and F6 reproduced on
+   factory main; clearcutt-verify and clearcutt-portal produce a verified
+   estate report and site. Not done locally: keyless signing, SLSA
+   provenance, the second runner, and cross-repository dispatch (they need
+   GitHub). New gaps F9–F16, V8–V12, P7, W1–W2 are in
+   [`prototype/FINDINGS.md`](../prototype/FINDINGS.md); V10 and F9 should be
+   fixed before bring-up.
+2. **Factory fixes.** F1 and F2 (shipped in v0.1.1), F3 (PR #30) and F6
+   (PR #32), then F9 and F10, as focused PRs with
    tests, CHANGELOG, and schemas. The showcase pins factory by SHA until you
    choose to release.
 3. **Bring-up**, after your approval. Create the org and repos, apply the

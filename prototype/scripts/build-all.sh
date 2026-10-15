@@ -26,11 +26,11 @@ step() { # name command...
 }
 
 # The stacks are signed with the stacks key: regenerate their profile from the
-# platform profile (factory has one signing key per profile; FINDINGS.md P-4).
+# platform profile (factory has one signing key per profile; FINDINGS.md F12).
 {
   echo "# GENERATED from ../factory.org.yaml by scripts/build-all.sh; do not edit."
   echo "# Identical except that \`stack push\` signs with the stacks key: factory signs"
-  echo "# everything with signing.key and has no per-role signing key (FINDINGS.md P-4)."
+  echo "# everything with signing.key and has no per-role signing key (FINDINGS.md F12)."
   sed -e 's#key: \.\./keys/images\.key#key: ../../keys/stacks.key#' -e 's#key: \.\./keys/#key: ../../keys/#' \
     platform/factory.org.yaml | grep -v '^# yaml-language-server'
 } > platform/stacks/factory.org.yaml

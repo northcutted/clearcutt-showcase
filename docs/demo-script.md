@@ -99,24 +99,29 @@ Done before the audience arrives, with `demo/drill.sh stage`. It opens and
 merges a platform PR labelled **DRILL**. That PR holds two packages at their last
 vulnerable Wolfi builds:
 
-- **OpenSSL** (`libcrypto3`/`libssl3`), present in every run image through
-  wolfi-base;
-- **libxml2 2.13.x** in `run-python` and `build-python`. This is a realistic
-  "ABI hold": 2.14 changed the soname from `libxml2.so.2` to `libxml2.so.16`.
-  catalog's C extension was built against `.so.2`.
+- **OpenSSL 3** (`libcrypto3`/`libssl3`) at **3.6.3-r4**, in every run image
+  (the platform ships them as compatibility libraries; wolfi-base itself is on
+  OpenSSL 4.0). grype reports **CVE-2026-14456 (High)**, fixed in 3.6.3-r5;
+  the release resolves 3.6.5-r2. Two Criticals with no Wolfi fix recorded
+  (CVE-2026-63073, CVE-2026-75803) are ignored by `onlyFixed`, so the gate
+  passes; turning `onlyFixed` off would need VEX in `platform/vex/`.
+- **libxml2 2.13.6-r3** (`libxml2.so.2`) in `run-python` and `build-python`,
+  instead of `libxml2-16` (2.15.x, `libxml2.so.16`). This is a realistic "ABI
+  hold": catalog's C extension is built against `.so.2`. Upstream 2.13.6 has
+  Highs (CVE-2025-32414, -32415; CVE-2025-7425 is fixed only on the `.so.16`
+  line), but **grype reports none of them** for Wolfi's package (FINDINGS W1),
+  so this one is detected from the package index, not the scanner.
 
-The exact CVEs are picked while prototyping. They must be real, fixed in a
-newer Wolfi build, and rated **High**, so the "before" state passes the
-critical gate. If something triaged as not exploitable is Critical, the
-security team records that in `platform/vex/`, which is a real feature to
-show. The fleet automation rebases every app onto the held images. The
-rebased apps are the "before" state the audience sees.
+These were picked while prototyping (`prototype/scripts/drill-holds.py`).
+The fleet automation rebases checkout and storefront onto the held images;
+catalog's rebase is refused (it needs `libxml2.so.16`) and it is rebuilt on
+the held build image. Those are the "before" state the audience sees.
 
 ### Live (about 20 min of wall clock; times from merge)
 
 | t | Step | What the audience sees | Proves |
 |---|---|---|---|
-| −2m | **Detect** | The portal and estate report show the High CVEs: OpenSSL in all run images and the 3 apps that inherit it; libxml2 in `run-python` and `catalog`. The base graph shows which apps sit on which run image, proven by layer digest. | One fleet-wide answer to "who is affected?", including inherited exposure |
+| −2m | **Detect** | The portal and estate report show the High CVE in OpenSSL 3 in all run images and the 3 apps that inherit it, and the package index shows libxml2 2.13.6 in `run-python`, `build-python`, and `catalog` (the scanner doesn't flag it). The base graph shows which apps sit on which run image, proven by layer digest. | One fleet-wide answer to "who is affected?", including inherited exposure |
 | 0 | **Fix** | `drill.sh respond` opens the platform PR "Release the OpenSSL and libxml2 holds". The lock diff shows exact versions, CI's gate is green, and the PR is merged. | The fix is a reviewed, gated change to a lockfile |
 | ~8m | **Publish** | The run and build images are published, signed, and attested. The second runner reproduces them. `notify` dispatches to `checkout`, `catalog`, and `storefront`. | The platform's publish is the only manual step |
 | ~12m | **Rebase** | `checkout` and `storefront` report `linux/amd64: safe to rebase`, `linux/arm64: safe to rebase`. They are smoke-tested, scanned, gated, signed, and pushed with a **rebase record**. The rebase is repeated from that record, the digests match, and a pin PR opens in each app repository. | Patched in minutes, with no app-team action and no rebuild |

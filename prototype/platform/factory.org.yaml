@@ -17,7 +17,7 @@ defaults:
 
 builder:
   # moby/buildkit v0.33.1 plus a registry mirror for localhost:5001
-  # (prototype/local/buildkit; FINDINGS.md P-1).
+  # (prototype/local/buildkit; FINDINGS.md F11).
   buildkit: localhost:5001/tools/buildkit:v0.33.1-local
   frontend: docker/dockerfile:1
   toolbox: cgr.dev/chainguard/wolfi-base:latest

@@ -5,7 +5,7 @@
 # stage starts with `mkdir -p /out` in /. A non-root build image (which
 # policy.requireNonRoot demands of every image) can't do that, so the
 # stack-workdirs tool ships /out and /src as world-writable sticky
-# directories. See FINDINGS.md P-2; remove this once factory runs the build
+# directories. See FINDINGS.md F9; remove this once factory runs the build
 # stage as root.
 apiVersion: factory.clearcutt.dev/v1alpha1
 kind: Image

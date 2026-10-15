@@ -1,0 +1,26 @@
+# Act 2 check: scripts/build-all.sh re-run against the committed locks after the drill (2026-10-15T00:15:09Z).
+# Expected: nothing republished. Platform images and catalog (built) were re-tagged at identical digests;
+# checkout and storefront (rebased by the fleet) rebuilt to new digests with the same content and were
+# pushed (FINDINGS F10); stack push re-pushed and re-signed unchanged stacks (F16).
+# Before: checkout ccf63a29…, storefront c176b7d9…, catalog dd866467…
+lock-run-go                  exit=0    0s  platform/images/run-go/image.lock.yaml is up to date
+build-run-go                 exit=0   13s  localhost:5001/platform/run-go@sha256:ae37fa6364108fbf0c84d0150e2bc0a1dc6d9253d8b57c95bfcffeba31f5294a is alre
+lock-build-go                exit=0    0s  platform/images/build-go/image.lock.yaml is up to date
+build-build-go               exit=0   40s  localhost:5001/platform/build-go@sha256:b4037b9637c2af4259c5358a49b69832c5f9443d35c6af625d5545ce0c2e56c9 is al
+lock-run-python              exit=0    0s  platform/images/run-python/image.lock.yaml is up to date
+build-run-python             exit=0   20s  localhost:5001/platform/run-python@sha256:17210815e0e98a9ea1d881e41cd8f8ad5e1b6ad5a041fdbe8e3b52e4598d1894 is 
+lock-build-python            exit=0    0s  platform/images/build-python/image.lock.yaml is up to date
+build-build-python           exit=0   80s  localhost:5001/platform/build-python@sha256:39744f222a5b84b194bf01077932b480d44015f12a563922c359b18546c705c9 i
+lock-run-node                exit=0    0s  platform/images/run-node/image.lock.yaml is up to date
+build-run-node               exit=0   28s  localhost:5001/platform/run-node@sha256:aab26bc1afe525b60c8617ec09e8d3102ba0fbcd2813c195571ee56bee820fa2 is al
+lock-build-node              exit=0    1s  platform/images/build-node/image.lock.yaml is up to date
+build-build-node             exit=0   29s  localhost:5001/platform/build-node@sha256:e6dac01a72375f68e7963f755e028dfe893e8f7b464a1162c81de811b1d09a4a is 
+stack-push-go                exit=0    1s  pushed stack go to localhost:5001/stacks/go@sha256:085256687e48e74c87f1faee5311633e57f14688d80ceefff83fb63f1f2
+stack-push-python            exit=0    0s  pushed stack python to localhost:5001/stacks/python@sha256:ecc02b376205aae3e18020ec2cd75d4f8b2d7a56408fd050e0a
+stack-push-node              exit=0    0s  pushed stack node to localhost:5001/stacks/node@sha256:41074e66016f2a505810418d15a09e18588438c7bb2306023bb5d10
+lock-checkout                exit=0    0s  checkout/app.lock.yaml is up to date
+build-checkout               exit=0   27s  pushed localhost:5001/apps/checkout@sha256:d3e32b8c83de1b230df4c70e8f3eb487eb78047c628a554562278f78366db3ef
+lock-catalog                 exit=0    0s  catalog/app.lock.yaml is up to date
+build-catalog                exit=0   19s  localhost:5001/apps/catalog@sha256:dd866467a7a5c516c8885c3c6e1e33ec3fe1f5ca93191d47bcb685374d870dc7 is already
+lock-storefront              exit=0    0s  storefront/app.lock.yaml is up to date
+build-storefront             exit=0   56s  pushed localhost:5001/apps/storefront@sha256:6ac720a288deaf4b9dc96ebc6537efa60a27a175cd89242058653b24ae30c819

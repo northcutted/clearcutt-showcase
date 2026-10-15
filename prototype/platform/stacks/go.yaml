@@ -15,7 +15,7 @@ spec:
     CGO_ENABLED: "0"
     MAIN: .
     # The build image runs as 65532, which can't write BuildKit cache mounts
-    # (created root-owned), so no caches: (FINDINGS.md P-2).
+    # (created root-owned), so no caches: (FINDINGS.md F9).
     GOCACHE: /tmp/go-build
     GOMODCACHE: /tmp/go-mod
     GOFLAGS: -mod=readonly

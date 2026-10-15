@@ -3,7 +3,7 @@
 
     drill-holds.py apply|release|show PLATFORM_DIR
 
-The holds (demo-script.md, Act 6), chosen while prototyping (FINDINGS.md D-1):
+The holds (demo-script.md, Act 6), chosen while prototyping (FINDINGS.md W1):
 
   OpenSSL 3   libcrypto3, libssl3 = 3.6.3-r4 in every run image
               (CVE-2026-14456, High, fixed in 3.6.3-r5; release resolves 3.6.5-r2)

@@ -9,10 +9,10 @@
 # dependencies can be installed, the site to .state/estate/site.
 #
 # Local-only workarounds (FINDINGS.md):
-#   - trust policy key paths must be absolute (V-2), so the policy files are
+#   - trust policy key paths must be absolute (V9), so the policy files are
 #     generated here rather than committed;
 #   - clearcutt-verify has no way to skip the transparency log for key-signed
-#     evidence (V-1), so cosign is wrapped to add --insecure-ignore-tlog.
+#     evidence (V8), so cosign is wrapped to add --insecure-ignore-tlog.
 set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd)
 cd "$here"
@@ -62,7 +62,7 @@ EOF
 # The inventory: platform images by line tag, apps by latest. The upstream base
 # (cgr.dev/chainguard/wolfi-base) is left out on purpose: with it observed,
 # clearcutt-verify attributes every app to it instead of its run image, and
-# `estate dependents` of a run image comes back empty (FINDINGS.md V-3).
+# `estate dependents` of a run image comes back empty (FINDINGS.md V10).
 # Set CC_ESTATE_UPSTREAM=1 to include it anyway.
 cat > "$state/refs.txt" <<EOF
 # platform
