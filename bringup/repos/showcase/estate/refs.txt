@@ -1,0 +1,16 @@
+# The estate clearcutt-verify checks (estate.yml): every image <ORG> ships.
+# Platform images by their line tags; apps by latest.
+ghcr.io/<ORG>/platform/run-go:1
+ghcr.io/<ORG>/platform/build-go:1
+ghcr.io/<ORG>/platform/run-python:3.14
+ghcr.io/<ORG>/platform/build-python:3.14
+ghcr.io/<ORG>/platform/run-node:24
+ghcr.io/<ORG>/platform/build-node:24
+ghcr.io/<ORG>/apps/checkout:latest
+ghcr.io/<ORG>/apps/catalog:latest
+ghcr.io/<ORG>/apps/storefront:latest
+# The upstream base. With clearcutt-verify #71 apps stay attributed to their
+# run image when it is observed (V10), but it carries none of factory's
+# evidence, so it fails this policy and the estate would never be all clear.
+# Uncomment to show it in the base graph anyway.
+# cgr.dev/chainguard/wolfi-base:latest

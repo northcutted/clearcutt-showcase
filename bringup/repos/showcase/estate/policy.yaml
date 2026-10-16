@@ -1,0 +1,15 @@
+# What every image in estate/refs.txt must prove (plan §7). Run by
+# .github/workflows/estate.yml.
+apiVersion: clearcutt.dev/v1
+kind: VerificationPolicy
+# Not provenance: a rebased app (the fleet's steady state) carries a rebase
+# record instead of SLSA provenance, and clearcutt-verify treats provenance as
+# missing on it, not as not-applicable. Built images show their provenance in
+# the report all the same.
+required: [signature, sbom, vulnerabilityScan, recipe]
+# The platform's trust policy, the same file factory builds and rebases with:
+# estate.yml checks out <ORG>/platform's org/ into estate/.platform.
+trustPolicy: .platform/org/trust.yaml
+failOn: critical
+onlyFixed: true
+maxDaysBehind: 7
