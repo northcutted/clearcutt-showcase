@@ -1,0 +1,111 @@
+# Builds, publishes, and maintains this repository's app with ClearCutt
+# Factory's reusable workflows (plan §5):
+#
+#   pull request                       images: build, smoke-test, scan, gate
+#   push to main                       images: publish; then fleet
+#   daily                              fleet: rebase onto the newest run image, pin PR
+#   weekly                             update-locks: one PR if any input moved
+#   clearcutt.run-image-published      fleet (from the platform's notify job)
+#   clearcutt.stack-published,
+#   clearcutt.profile-published        update-locks
+#   manual (workflow_dispatch)         whichever of the three you pick
+#
+# Dispatch payloads are only hints: the jobs re-resolve tags from the registry
+# and verify signatures. The bot's pull requests come from the GitHub App
+# (CLEARCUTT_APP_ID variable, CLEARCUTT_APP_PRIVATE_KEY secret), else
+# CLEARCUTT_BOT_TOKEN, so CI runs on them by itself. Secrets are passed by
+# name: secrets: inherit doesn't reach another owner's workflows.
+name: factory
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 6 * * 1" # weekly: re-resolve every input
+    - cron: "41 5 * * *" # daily: rebase onto the newest build of the run image
+  workflow_dispatch:
+    inputs:
+      run:
+        description: What to run
+        type: choice
+        options: [images, fleet, update-locks]
+        default: fleet
+  repository_dispatch:
+    types: [clearcutt.run-image-published, clearcutt.stack-published, clearcutt.profile-published]
+permissions:
+  contents: read
+jobs:
+  images:
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run == 'images')
+    uses: northcutted/clearcutt-factory/.github/workflows/images.yml@<FACTORY_REF>
+    permissions: {contents: read, packages: write, id-token: write, attestations: write}
+    with:
+      manifests: "*/app.yaml"
+      factory-version: <FACTORY_REF>
+
+  fleet:
+    needs: images
+    if: ${{ !cancelled() && (github.event.schedule == '41 5 * * *' || github.event.action == 'clearcutt.run-image-published' || (github.event_name == 'workflow_dispatch' && inputs.run == 'fleet') || (github.event_name == 'push' && needs.images.result == 'success')) }}
+    # One fleet run at a time in this repository, so a dispatch and the daily
+    # run can't race on the pin branch; a newer one waits, never cancels.
+    concurrency:
+      group: fleet-${{ github.repository }}
+      cancel-in-progress: false
+    uses: northcutted/clearcutt-factory/.github/workflows/fleet.yml@<FACTORY_REF>
+    permissions: {contents: write, pull-requests: write, packages: write, id-token: write}
+    with:
+      apps: "*/app.yaml"
+      factory-version: <FACTORY_REF>
+    secrets:
+      CLEARCUTT_APP_PRIVATE_KEY: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+      CLEARCUTT_BOT_TOKEN: ${{ secrets.CLEARCUTT_BOT_TOKEN }}
+
+  update-locks:
+    if: github.event.schedule == '23 6 * * 1' || github.event.action == 'clearcutt.stack-published' || github.event.action == 'clearcutt.profile-published' || (github.event_name == 'workflow_dispatch' && inputs.run == 'update-locks')
+    concurrency:
+      group: update-locks-${{ github.repository }}
+      cancel-in-progress: false
+    uses: northcutted/clearcutt-factory/.github/workflows/update-locks.yml@<FACTORY_REF>
+    permissions: {contents: write, pull-requests: write}
+    with:
+      manifests: "*/app.yaml"
+      factory-version: <FACTORY_REF>
+    secrets:
+      CLEARCUTT_APP_PRIVATE_KEY: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+      CLEARCUTT_BOT_TOKEN: ${{ secrets.CLEARCUTT_BOT_TOKEN }}
+
+  # This app's image changed (published from main, or rebased): refresh the
+  # showcase's estate report and portal now (plan §5). The daily fleet run
+  # doesn't dispatch; the estate's own daily run follows it.
+  estate-changed:
+    needs: [images, fleet]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && github.event_name != 'schedule' && (needs.fleet.result == 'success' || needs.fleet.result == 'failure' || (needs.images.result == 'success' && needs.images.outputs.published != '[]')) }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      APP_ID: ${{ vars.CLEARCUTT_APP_ID }}
+      APP_KEY_SET: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY != '' }}
+    steps:
+      - name: Mint a GitHub App token for the showcase repository
+        id: app
+        if: env.APP_ID != '' || env.APP_KEY_SET == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ env.APP_ID }}
+          private-key: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: showcase
+          permission-contents: write
+      - name: Dispatch clearcutt.estate-changed
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || secrets.CLEARCUTT_BOT_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::no GitHub App or CLEARCUTT_BOT_TOKEN: the estate refreshes at its daily run instead"
+            exit 0
+          fi
+          jq -n --arg source "$GITHUB_REPOSITORY" --arg sha "$GITHUB_SHA" \
+            '{event_type: "clearcutt.estate-changed", client_payload: {source: $source, sha: $sha}}' |
+            gh api --method POST "repos/$OWNER/showcase/dispatches" --input -
+          echo "dispatched clearcutt.estate-changed to $OWNER/showcase"

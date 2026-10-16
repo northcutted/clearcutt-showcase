@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# catalog (catalog team): a Python 3.14 HTTP service on stack python:1, with a
+# C extension (catalog._feeds) that validates supplier XML feeds via libxml2.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: App
+metadata:
+  name: catalog
+spec:
+  stack: ghcr.io/<ORG>/stacks/python:1
+  exclude: [build, "*.egg-info", __pycache__]
+  labels:
+    org.opencontainers.image.source: https://github.com/<ORG>/catalog
+    org.opencontainers.image.description: Catalog service (Python 3.14, stack python:1)
+  test:
+    http: {port: 8080, path: /healthz}
+    timeout: 120s

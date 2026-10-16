@@ -1,0 +1,9 @@
+# clearcutt-factory build output
+out/
+# Build leftovers in the app source
+node_modules/
+dist/
+__pycache__/
+*.egg-info/
+build/
+*.so
