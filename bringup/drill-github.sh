@@ -37,7 +37,7 @@
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "$here/.." && pwd)
-# shellcheck source=lib.sh
+# shellcheck source-path=SCRIPTDIR source=lib.sh
 . "$here/lib.sh"
 
 apps=(checkout storefront catalog)
