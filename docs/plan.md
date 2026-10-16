@@ -117,7 +117,10 @@ binds the caller repository, and `signing.stacks` names the stack signer.
 Phase 1 exercised the stack signer with key pairs (one per role).
 
 **The org profile we want.** The platform team owns it. Each app repo carries a
-copy until factory can reference a published one (F5):
+copy until factory can reference a published one (F5, [PR #50](https://github.com/northcutted/clearcutt-factory/pull/50):
+the platform pushes this profile with `profile push`, and each app repo's
+`factory.org.yaml` extends it, adding only `registry` and its own
+`signing.verify` and tightening at most):
 
 ```yaml
 signing:
@@ -274,7 +277,7 @@ severities are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md).
 | F2 [#12](https://github.com/northcutted/clearcutt-factory/issues/12) | `requireSignedStacks` verifies stacks with the image identity. Stacks are published from another repository, so they need their own signer (`signing.stacks`). | gap | Fixed in v0.1.1; phase 1 exercised `signing.stacks` with a separate stack key. |
 | F3 | When a rebase is refused, `--update-lock` moves only the run image. The rebuild then uses the old build image and can link against libraries the new run image lacks (the drill's case). The rebuild PR should re-resolve the stack's build image too. | gap | **Confirmed in phase 1** (the rebuild links `libxml2.so.2` onto a run image without it). Fix: [PR #30](https://github.com/northcutted/clearcutt-factory/pull/30) (open). |
 | F4 [#13](https://github.com/northcutted/clearcutt-factory/issues/13) | Cross-repository fleet: callers can't tell what `images.yml` published (no outputs), and nothing notifies dependents. | feature | Prototype in the showcase, then propose. |
-| F5 [#14](https://github.com/northcutted/clearcutt-factory/issues/14) | One org profile shared across repositories (publish and reference it, signed, like stacks), so app repos can't drift from or weaken it. | feature | Issue. |
+| F5 [#14](https://github.com/northcutted/clearcutt-factory/issues/14) | One org profile shared across repositories (publish and reference it, signed, like stacks), so app repos can't drift from or weaken it. | feature | Implemented in [PR #50](https://github.com/northcutted/clearcutt-factory/pull/50) (open, stacked on #49): `profile push`, then `extends: {ref, signer}` in each app repo's `factory.org.yaml`, pinned per lock, verified on every load, tighten-only. |
 | F6 [#15](https://github.com/northcutted/clearcutt-factory/issues/15) | Until the pin PR merges, any push to an app's `main` rebuilds from the old lock. `publish` finds that digest "already published" and **moves `latest` back to the unpatched image**. | hazard | **Reproduced in phase 1** (`drill.sh f6`). Fix: [PR #32](https://github.com/northcutted/clearcutt-factory/pull/32) (open). |
 | F7 [#16](https://github.com/northcutted/clearcutt-factory/issues/16) | The second-runner reproduction is only a CI job result. Attest it, so verifiers and the portal can show "independently reproduced". | feature | Issue. |
 | F8 [#17](https://github.com/northcutted/clearcutt-factory/issues/17) | Reusable workflows only take a static `CLEARCUTT_BOT_TOKEN`. Support GitHub App credentials (`app-id` and private key) for short-lived tokens. | feature | Issue. |
