@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Toolchain for stack go:1. Go cross-compiles, so it runs on the build machine.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+extends: ../_shared/build.yaml
+metadata:
+  name: build-go
+  tags: ["1"]
+spec:
+  packages: [go-1.27, git]
+  env:
+    GOTOOLCHAIN: local
+  labels:
+    org.opencontainers.image.description: Build image for Go apps (stack go:1)
+  test:
+    command: [/bin/sh, -c, 'test "$(id -u)" = 65532 && go version && git --version']

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/org.schema.json
+# Org profile for the platform repository's own images (images/*/image.yaml)
+# and stacks (stacks/*.yaml).
+#
+# The app repositories extend the shared profile in org/profile.yaml instead.
+# This one can't: the shared profile is published from this repository, so a
+# lock here couldn't pin it before its first run. It therefore repeats the
+# shared profile's builder, signing, gate, and policy; keep the two in step.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: OrgProfile
+
+registry: ghcr.io/<ORG>/platform
+# Platform images carry line tags only (metadata.tags in each image.yaml), no latest.
+tags: []
+
+defaults:
+  base: cgr.dev/chainguard/wolfi-base:latest
+  platforms: [linux/amd64, linux/arm64]
+  labels:
+    org.opencontainers.image.vendor: <ORG>
+
+builder:
+  buildkit: moby/buildkit:v0.33.1
+  frontend: docker/dockerfile:1
+  toolbox: cgr.dev/chainguard/wolfi-base:latest
+
+signing:
+  mode: keyless
+  # Platform images: factory's images.yml, called from this repository.
+  # Stacks: this repository's stacks.yml (stack push signs as it).
+  trustPolicy: org/trust.yaml
+
+vulnerabilities:
+  scanner: grype
+  failOn: critical
+  onlyFixed: true
+
+policy:
+  requireNonRoot: true
+  requiredLabels: [org.opencontainers.image.source]
+  requireSignedStacks: true
+  allowTOFU: false
+  allowedRegistries: [cgr.dev/chainguard/, ghcr.io/<ORG>/, docker.io/moby/, docker.io/docker/]

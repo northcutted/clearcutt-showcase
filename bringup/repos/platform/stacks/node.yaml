@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
+# Stack node:1, published as ghcr.io/<ORG>/stacks/node:1 by
+# .github/workflows/stacks.yml. Steps run on each target platform (emulated
+# for the other one), so native modules match.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Stack
+metadata:
+  name: node
+  description: Node.js 24 (TypeScript) apps on run-node
+spec:
+  build: ../images/build-node/image.yaml
+  run: ../images/run-node/image.yaml
+  platforms: [linux/amd64, linux/arm64]
+  crossCompile: false
+  buildEnv:
+    NPM_CONFIG_CACHE: /tmp/npm-cache
+    NPM_CONFIG_UPDATE_NOTIFIER: "false"
+    NPM_CONFIG_FUND: "false"
+    NPM_CONFIG_AUDIT: "false"
+  steps:
+    - run: npm ci
+    - run: npm run build
+    # --no-save: leave package-lock.json as the app committed it.
+    - run: npm prune --omit=dev --no-save
+    - run: cp -R dist node_modules package.json /out/
+  user: "65532"
+  env:
+    NODE_ENV: production
+    PORT: "8080"
+  entrypoint: ["node", "/app/dist/server.js"]
+  test:
+    http: {port: 8080, path: /healthz}
+    timeout: 120s

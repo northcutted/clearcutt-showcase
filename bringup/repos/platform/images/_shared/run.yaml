@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Shared by every run image (extends: ../_shared/run.yaml): what apps ship on.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+metadata: {name: shared-run}
+spec:
+  packages:
+    - ca-certificates-bundle
+    - tzdata
+    # OpenSSL 3 compatibility libraries (libcrypto.so.3, libssl.so.3) for apps
+    # that link them; the runtimes themselves use OpenSSL 4.0 from wolfi-base.
+    # The CVE drill holds these at a vulnerable build (bringup/drill-github.sh
+    # in the showcase repository).
+    - libcrypto3
+    - libssl3
+  labels:
+    org.opencontainers.image.source: https://github.com/<ORG>/platform
+  user: "65532"
+  workdir: /app

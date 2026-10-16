@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
+# Stack go:1, published as ghcr.io/<ORG>/stacks/go:1 by
+# .github/workflows/stacks.yml and signed by that workflow (plan §3, §4).
+# Apps name it by reference.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Stack
+metadata:
+  name: go
+  description: Static Go binaries on run-go
+spec:
+  build: ../images/build-go/image.yaml
+  run: ../images/run-go/image.yaml
+  platforms: [linux/amd64, linux/arm64]
+  crossCompile: true
+  buildEnv:
+    CGO_ENABLED: "0"
+    MAIN: .
+    # Kept from the prototype, where the steps ran as 65532 (FINDINGS.md F9).
+    # With factory #46 they run as root, so caches: would work too.
+    GOCACHE: /tmp/go-build
+    GOMODCACHE: /tmp/go-mod
+    GOFLAGS: -mod=readonly
+  steps:
+    - run: go mod download
+    - run: GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w -buildid=" -o "/out/$APP_NAME" "$MAIN"
+  user: "65532"
+  entrypoint: ["/app/{{name}}"]
+  env:
+    PORT: "8080"
+  test:
+    http: {port: 8080, path: /healthz}

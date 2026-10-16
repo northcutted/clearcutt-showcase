@@ -1,0 +1,116 @@
+# Builds and publishes the platform: run and build images, stacks, and the
+# shared org profile, then wakes the repositories that build on them.
+#
+#   pull request   images.yml builds, smoke-tests, scans, and gates every image
+#   push to main   images.yml publishes (sign, attest, SLSA provenance, second-
+#                  runner reproduction); then stacks.yml pushes the stacks and
+#                  profile.yml the shared profile, each signed by its own
+#                  workflow identity; notify.yml dispatches
+#                  clearcutt.run-image-published / clearcutt.stack-published /
+#                  clearcutt.profile-published to every <ORG> repository with
+#                  the topic clearcutt-app; and the showcase estate is refreshed.
+#
+# Dispatching needs the GitHub App (CLEARCUTT_APP_ID variable and
+# CLEARCUTT_APP_PRIVATE_KEY secret) or CLEARCUTT_BOT_TOKEN; secrets are passed
+# by name, because secrets: inherit doesn't reach another owner's workflows.
+name: platform
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: platform-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  images:
+    uses: northcutted/clearcutt-factory/.github/workflows/images.yml@<FACTORY_REF>
+    permissions: {contents: read, packages: write, id-token: write, attestations: write}
+    with:
+      manifests: images/*/image.yaml
+      factory-version: <FACTORY_REF>
+
+  # Signed as https://github.com/<ORG>/platform/.github/workflows/stacks.yml@refs/heads/main,
+  # the stack signer in org/trust.yaml. Unchanged stacks only move their tag.
+  stacks:
+    needs: images
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/stacks.yml
+    permissions: {contents: read, packages: write, id-token: write}
+
+  # Signed as …/platform/.github/workflows/profile.yml@refs/heads/main, the
+  # signer each app repository names in extends.signer.
+  profile:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/profile.yml
+    permissions: {contents: read, packages: write, id-token: write}
+
+  notify-images:
+    needs: images
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.images.outputs.published != '[]' && needs.images.outputs.published != '' }}
+    uses: northcutted/clearcutt-factory/.github/workflows/notify.yml@<FACTORY_REF>
+    permissions: {contents: read}
+    with:
+      published: ${{ needs.images.outputs.published }}
+    secrets:
+      CLEARCUTT_APP_PRIVATE_KEY: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+      CLEARCUTT_BOT_TOKEN: ${{ secrets.CLEARCUTT_BOT_TOKEN }}
+
+  notify-stacks:
+    needs: stacks
+    if: ${{ !cancelled() && needs.stacks.outputs.published != '[]' && needs.stacks.outputs.published != '' }}
+    uses: northcutted/clearcutt-factory/.github/workflows/notify.yml@<FACTORY_REF>
+    permissions: {contents: read}
+    with:
+      published: ${{ needs.stacks.outputs.published }}
+    secrets:
+      CLEARCUTT_APP_PRIVATE_KEY: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+      CLEARCUTT_BOT_TOKEN: ${{ secrets.CLEARCUTT_BOT_TOKEN }}
+
+  notify-profile:
+    needs: profile
+    if: ${{ !cancelled() && needs.profile.outputs.published != '[]' && needs.profile.outputs.published != '' }}
+    uses: northcutted/clearcutt-factory/.github/workflows/notify.yml@<FACTORY_REF>
+    permissions: {contents: read}
+    with:
+      published: ${{ needs.profile.outputs.published }}
+    secrets:
+      CLEARCUTT_APP_PRIVATE_KEY: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+      CLEARCUTT_BOT_TOKEN: ${{ secrets.CLEARCUTT_BOT_TOKEN }}
+
+  # The estate changed: refresh the showcase's clearcutt-verify report and
+  # portal now rather than at its daily run (plan §5).
+  estate-changed:
+    needs: [images, stacks, profile]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && (needs.images.outputs.published != '[]' || needs.stacks.outputs.published != '[]' || needs.profile.outputs.published != '[]') }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      APP_ID: ${{ vars.CLEARCUTT_APP_ID }}
+      APP_KEY_SET: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY != '' }}
+    steps:
+      - name: Mint a GitHub App token for the showcase repository
+        id: app
+        if: env.APP_ID != '' || env.APP_KEY_SET == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ env.APP_ID }}
+          private-key: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: showcase
+          permission-contents: write
+      - name: Dispatch clearcutt.estate-changed
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || secrets.CLEARCUTT_BOT_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::no GitHub App or CLEARCUTT_BOT_TOKEN: the estate refreshes at its daily run instead"
+            exit 0
+          fi
+          jq -n --arg source "$GITHUB_REPOSITORY" --arg sha "$GITHUB_SHA" \
+            '{event_type: "clearcutt.estate-changed", client_payload: {source: $source, sha: $sha}}' |
+            gh api --method POST "repos/$OWNER/showcase/dispatches" --input -
+          echo "dispatched clearcutt.estate-changed to $OWNER/showcase"

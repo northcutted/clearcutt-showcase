@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
+# Stack python:1, published as ghcr.io/<ORG>/stacks/python:1 by
+# .github/workflows/stacks.yml. Steps run on each target platform (emulated
+# for the other one): wheels and C extensions are built for the platform they
+# ship on.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Stack
+metadata:
+  name: python
+  description: Python 3.14 apps (pure Python and C extensions) on run-python
+spec:
+  build: ../images/build-python/image.yaml
+  run: ../images/run-python/image.yaml
+  platforms: [linux/amd64, linux/arm64]
+  crossCompile: false
+  buildEnv:
+    PYTHONDONTWRITEBYTECODE: "1"
+    PIP_NO_CACHE_DIR: "1"
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  steps:
+    - run: python3 -m pip install --require-hashes --no-deps --no-compile --target /out/lib -r requirements.txt
+    - run: python3 -m pip install --no-deps --no-build-isolation --no-compile --target /out/lib .
+  user: "65532"
+  env:
+    PYTHONPATH: /app/lib
+    PYTHONDONTWRITEBYTECODE: "1"
+    PORT: "8080"
+  entrypoint: ["python3", "-m", "{{name}}"]
+  test:
+    http: {port: 8080, path: /healthz}
+    timeout: 120s

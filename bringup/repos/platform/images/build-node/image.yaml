@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Toolchain for stack node:1 (npm ci, tsc, npm prune). Runs on each target
+# platform (emulated for the other arch).
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+extends: ../_shared/build.yaml
+metadata:
+  name: build-node
+  tags: ["24"]
+spec:
+  packages: [nodejs-24, npm]
+  env:
+    NPM_CONFIG_UPDATE_NOTIFIER: "false"
+    NPM_CONFIG_FUND: "false"
+    NPM_CONFIG_AUDIT: "false"
+  labels:
+    org.opencontainers.image.description: Build image for Node.js 24 apps (stack node:1)
+  test:
+    command: [/bin/sh, -c, 'test "$(id -u)" = 65532 && node --version && npm --version']

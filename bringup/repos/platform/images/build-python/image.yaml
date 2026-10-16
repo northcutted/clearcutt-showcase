@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Toolchain for stack python:1: builds wheels and C extensions (catalog._feeds
+# against libxml2). Runs on each target platform (emulated for the other arch).
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+extends: ../_shared/build.yaml
+metadata:
+  name: build-python
+  tags: ["3.14"]
+spec:
+  packages: [python-3.14, python-3.14-dev, py3.14-pip, py3.14-setuptools, build-base, pkgconf, libxml2-dev]
+  env:
+    PYTHONDONTWRITEBYTECODE: "1"
+    PIP_NO_CACHE_DIR: "1"
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  labels:
+    org.opencontainers.image.description: Build image for Python 3.14 apps (stack python:1)
+  test:
+    command: [/bin/sh, -c, 'test "$(id -u)" = 65532 && python3 -m pip --version && cc --version && pkg-config --modversion libxml-2.0']

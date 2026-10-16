@@ -1,0 +1,28 @@
+# Re-resolves every input of every platform image once a week, and on demand
+# (Act 3 of the demo: gh workflow run update-locks), opening one pull request
+# per image that moved. Merging one publishes it (platform.yml), which wakes
+# the apps.
+#
+# The pull requests come from the GitHub App (CLEARCUTT_APP_ID variable and
+# CLEARCUTT_APP_PRIVATE_KEY secret), else CLEARCUTT_BOT_TOKEN, so CI runs on
+# them by itself.
+name: update-locks
+on:
+  schedule:
+    - cron: "23 6 * * 1" # Mondays
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  update-locks:
+    concurrency:
+      group: update-locks-${{ github.repository }}
+      cancel-in-progress: false
+    uses: northcutted/clearcutt-factory/.github/workflows/update-locks.yml@<FACTORY_REF>
+    permissions: {contents: write, pull-requests: write}
+    with:
+      manifests: images/*/image.yaml
+      factory-version: <FACTORY_REF>
+    secrets:
+      CLEARCUTT_APP_PRIVATE_KEY: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
+      CLEARCUTT_BOT_TOKEN: ${{ secrets.CLEARCUTT_BOT_TOKEN }}

@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/manifest.schema.json
+# Shared by every build (stack toolchain) image (extends: ../_shared/build.yaml).
+#
+# The prototype shipped /out and /src world-writable here, because stack
+# steps ran as this image's non-root user (FINDINGS.md F9). clearcutt-factory
+# now runs the app build stage as root (factory #46), so that workaround is
+# gone: the user below only has to satisfy policy.requireNonRoot.
+apiVersion: factory.clearcutt.dev/v1alpha1
+kind: Image
+metadata: {name: shared-build}
+spec:
+  packages: [ca-certificates-bundle]
+  labels:
+    org.opencontainers.image.source: https://github.com/<ORG>/platform
+  user: "65532"
