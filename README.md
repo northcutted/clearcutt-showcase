@@ -9,5 +9,7 @@ This showcase is an organization that has adopted every ClearCutt tool, running 
 - [Plan](docs/plan.md): repositories, registry, images, stacks, apps, trust, automation, settings, and gaps.
 - [Demo script](docs/demo-script.md): each step and what it proves, including the CVE drill.
 - [Issues filed](docs/issues.md): what each tool must provide.
+- [Prototype](prototype/README.md): the whole fleet on one laptop (phase 1), and what it found.
+- [Bring-up](bringup/README.md): the five repositories' initial contents and the script that creates them (phase 3).
 
-Status: plan; nothing is deployed yet.
+Status: prototype done; bring-up prepared, awaiting the open decisions and the tool releases. Nothing is deployed yet.

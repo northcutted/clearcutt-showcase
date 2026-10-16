@@ -10,10 +10,12 @@ It is also the first real cross-repository consumer of
 [clearcutt-factory](https://github.com/northcutted/clearcutt-factory). Every gap
 it hits becomes a focused fix upstream or an issue on the tool that owns it.
 
-Status: **proposal; phase 1 (local prototype) done**. Nothing has been
-created on GitHub yet. The prototype is in [`prototype/`](../prototype/README.md)
-and what it found in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md). Open
-decisions are collected in [§10](#10-decisions-needed).
+Status: **phase 1 (local prototype) done; phase 2 fixes in review; phase 3
+(bring-up) prepared**. Nothing has been created on GitHub yet. The prototype
+is in [`prototype/`](../prototype/README.md) and what it found in
+[`prototype/FINDINGS.md`](../prototype/FINDINGS.md); the bring-up, ready to
+run once the decisions in [§10](#10-decisions-needed) are made and the tools
+are released, is in [`bringup/`](../bringup/README.md).
 
 ## 1. Organization and repositories
 
@@ -343,28 +345,65 @@ package index rather than the scanner. Wolfi package names have moved
    GitHub). New gaps F9–F16, V8–V12, P7, W1–W2 are in
    [`prototype/FINDINGS.md`](../prototype/FINDINGS.md); V10 and F9 should be
    fixed before bring-up.
-2. **Factory fixes.** F1 and F2 (shipped in v0.1.1), F3 (PR #30) and F6
-   (PR #32), then F9 and F10, as focused PRs with
-   tests, CHANGELOG, and schemas. The showcase pins factory by SHA until you
-   choose to release.
-3. **Bring-up**, after your approval. Create the org and repos, apply the
-   settings, add the secret, push, and get publishing green in `platform`, then
-   in each app.
-4. **Coordination.** The notify and dispatch workflows. Then end-to-end: a run
-   image published leads to apps rebased within minutes.
-5. **Drill.** Script it (`demo/drill.sh stage|respond|status`), rehearse it, and
-   time it.
-6. **Verify and portal.** Wire `estate.yml` once both tools have releases.
+2. **Tool fixes.** F1 and F2 shipped in factory v0.1.1. **In review,
+   awaiting merge and release:** every other phase-1 gap has a focused pull
+   request, listed in [`issues.md`](issues.md): factory #30, #32, #33, #36,
+   #45, #46, #47, #48 (landed together by #49) and #50 (F5, shared org
+   profiles), for v0.2.0; verify #68, #69, #71 (V7–V12), for v0.16.0; portal
+   #3, #4, #8, #9 (P3, P5–P7), for its first release, v0.1.0.
+3. **Bring-up. Prepared, awaiting the §10 decisions and those releases.**
+   [`bringup/`](../bringup/README.md) holds the exact initial contents of the
+   five repositories (keyless signing bound to the caller repository; one
+   trust policy for factory and verify; the shared org profile published by
+   `platform` and extended by each app; images, stacks, profile, notify,
+   update-locks, fleet, and estate workflows) and `bringup.sh`, which creates
+   the repositories, applies the settings, sets the credentials, and pushes
+   (dry run by default, idempotent). Manual: creating the org and the GitHub
+   App, approving verify's release gate, and possibly package visibility.
+   Checked locally: actionlint and shellcheck clean; the platform locks with
+   the keyless profile; the shared profile packs, and an app profile extends
+   it; verify accepts the estate policy. Found while preparing: F17 and V13
+   ([`bringup/README.md` §8](../bringup/README.md#8-found-while-preparing-not-filed)).
+4. **Coordination.** Prepared with phase 3: `notify.yml` after each platform
+   publish, `repository_dispatch` handlers in each app, and
+   `clearcutt.estate-changed` to `showcase`. To check end to end: a run image
+   published leads to apps rebased within minutes.
+5. **Drill.** Scripted as [`bringup/drill-github.sh stage|respond|status`](../bringup/drill-github.sh);
+   rehearse and time it after bring-up.
+6. **Verify and portal.** `estate.yml` is prepared (verify v0.16.0, portal
+   v0.1.0); it runs once both are released.
 
 ## 10. Decisions needed
 
+Each has a recommended answer; [`bringup/README.md`](../bringup/README.md#1-decisions-plan-10-with-recommended-answers)
+maps them to the script's inputs.
+
 1. **Org:** create `clearcutt-showcase`, or use another name?
+   *Recommended:* `clearcutt-showcase`, Free plan (created on the web; the
+   script checks it exists).
 2. **Repos:** create `platform`, `checkout`, `catalog`, `storefront`, and
    `showcase` (all public) in it?
+   *Recommended:* yes, all public. `showcase` starts from this repository's
+   history.
 3. **Token:** one fine-grained PAT as an org secret scoped to those five repos,
    or a repository secret in each? (The permissions are in §6.)
+   *Recommended:* neither: a **GitHub App** (factory F8, #36), installed on
+   all the org's repositories, with an org variable `CLEARCUTT_APP_ID` and an
+   org secret `CLEARCUTT_APP_PRIVATE_KEY`, both scoped to the five
+   repositories. Its tokens expire within the hour and belong to no person.
+   The PAT (`CLEARCUTT_BOT_TOKEN`, org secret) stays supported as the fallback.
 4. **Settings:** allow Actions to create and approve PRs (org-wide); Pages for
    `showcase`. Branch protection and auto-merge can come later.
-5. **Drill staging:** see [demo-script.md](demo-script.md#act-6--cve-drill). The
+   *Recommended:* yes to both now; branch protection (required `images`
+   checks) and auto-merge after the first green runs (`bringup.sh --protect`).
+5. **Drill staging:** see [demo-script.md](demo-script.md#act-6-cve-drill). The
    "before" state is created by holding two packages at their last vulnerable
    builds, clearly labelled as a drill.
+   *Recommended:* yes, as a platform pull request labelled **DRILL**
+   (`drill-github.sh stage`).
+6. **Releases:** cut clearcutt-factory v0.2.0 (#49, #50), clearcutt-verify
+   v0.16.0 (#68, #69, #71), and clearcutt-portal v0.1.0 (#3, #4, #8, #9)?
+   *Recommended:* yes, before bring-up, so every repository pins release
+   tags. Pinning commit SHAs instead works for a rehearsal (the trust
+   policy's identity then ends in `@<sha>`, and moving to tags later means
+   republishing).

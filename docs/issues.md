@@ -3,7 +3,7 @@
 Plan IDs are the ones in [plan.md §8](plan.md#8-what-each-tool-must-provide).
 Phase 1 (the local prototype) found F9–F16, V8–V12, and P7; evidence and repro
 steps are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md). Statuses are
-as of 2026-10-15. "PR" means opened, not yet merged.
+as of 2026-10-16. "PR" means opened, not yet merged.
 
 ## clearcutt-factory
 
@@ -13,7 +13,7 @@ as of 2026-10-15. "PR" means opened, not yet merged.
 | F2 | [#12](https://github.com/northcutted/clearcutt-factory/issues/12): `requireSignedStacks` uses the image signer | Fixed in v0.1.1; enforced wherever a stack is used in [PR #33](https://github.com/northcutted/clearcutt-factory/pull/33) |
 | F3 | [#29](https://github.com/northcutted/clearcutt-factory/issues/29): refused rebase keeps the old build image | Confirmed in phase 1; [PR #30](https://github.com/northcutted/clearcutt-factory/pull/30) |
 | F4 | [#13](https://github.com/northcutted/clearcutt-factory/issues/13): cross-repository fleet notification | [PR #36](https://github.com/northcutted/clearcutt-factory/pull/36) (`images.yml` outputs, `notify.yml`, dispatch in `init`) |
-| F5 | [#14](https://github.com/northcutted/clearcutt-factory/issues/14): share one org profile across repositories | Partly done (`signing.trustPolicy`, v0.1.1); publishing a signed profile needs a trust-bootstrap design decision |
+| F5 | [#14](https://github.com/northcutted/clearcutt-factory/issues/14): share one org profile across repositories | `signing.trustPolicy` in v0.1.1; publishing and extending a signed profile in [PR #50](https://github.com/northcutted/clearcutt-factory/pull/50) (used by the bring-up) |
 | F6 | [#15](https://github.com/northcutted/clearcutt-factory/issues/15): a push before the pin PR merges can move `latest` back | Reproduced in phase 1; [PR #32](https://github.com/northcutted/clearcutt-factory/pull/32) (unchanged source), [PR #45](https://github.com/northcutted/clearcutt-factory/pull/45) for changed source ([#35](https://github.com/northcutted/clearcutt-factory/issues/35)) and fleet races ([#37](https://github.com/northcutted/clearcutt-factory/issues/37)) |
 | F7 | [#16](https://github.com/northcutted/clearcutt-factory/issues/16): attest the second-runner reproduction | [PR #36](https://github.com/northcutted/clearcutt-factory/pull/36) (`reproduction/v1` predicate) |
 | F8 | [#17](https://github.com/northcutted/clearcutt-factory/issues/17): GitHub App credentials for the reusable workflows | [PR #36](https://github.com/northcutted/clearcutt-factory/pull/36) |
@@ -53,6 +53,15 @@ as of 2026-10-15. "PR" means opened, not yet merged.
 | P5 | [#6](https://github.com/northcutted/clearcutt-portal/issues/6): package search by version range | [PR #8](https://github.com/northcutted/clearcutt-portal/pull/8) |
 | P6 | [#7](https://github.com/northcutted/clearcutt-portal/issues/7): compare runs, per image | [PR #8](https://github.com/northcutted/clearcutt-portal/pull/8); CVE IDs fixed per run in [PR #9](https://github.com/northcutted/clearcutt-portal/pull/9) |
 | P7 | Show stacks, `packagesSource`, per-image history | [PR #4](https://github.com/northcutted/clearcutt-portal/pull/4) |
+
+## Found while preparing the bring-up (not filed yet)
+
+Details in [`bringup/README.md` §8](../bringup/README.md#8-found-while-preparing-not-filed).
+
+| Plan | Owner | Gap | Workaround in the bring-up |
+|---|---|---|---|
+| F17 | factory | `fleet.yml` and `update-locks.yml` can't open a pull request for a manifest at the repository root (branch `factory/rebase/.` is not a valid ref) | Each app lives in a subdirectory (`checkout/app.yaml`) |
+| V13 | verify | `required: [provenance]` fails every rebased image, which has a rebase record instead of SLSA provenance | The estate policy doesn't require provenance |
 
 ## Upstream (not filed)
 
