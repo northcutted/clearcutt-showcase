@@ -3,7 +3,7 @@
 # prototype/scripts/drill.sh, which ran it against a local registry. Dry run
 # by default: changes are printed, not made.
 #
-#   bringup/drill-github.sh --org NAME [--apply] [options] stage|respond|status
+#   bringup/drill-github.sh --owner NAME --owner-type user|org [--apply] [options] stage|respond|status
 #
 #   stage     open a platform pull request labelled DRILL that holds OpenSSL 3
 #             (libcrypto3/libssl3 3.6.3-r4, CVE-2026-14456) in every run image
@@ -19,7 +19,10 @@
 #             the image its latest tag holds, timed from that merge.
 #
 # Options:
-#   --org NAME        the showcase organization
+#   --owner NAME      the showcase's owner, as for bringup.sh
+#   --owner-type T    user or org (default org); --org NAME means --owner NAME --owner-type org
+#   --prefix P        repository prefix, as for bringup.sh (default clearcutt-showcase-
+#                     for a personal account, none for an organization)
 #   --apply           make the changes (default: dry run)
 #   --offline         don't read from GitHub either
 #   --no-merge        stage/respond: open the pull request and stop (merge it
@@ -43,12 +46,15 @@ root=$(cd "$here/.." && pwd)
 apps=(checkout storefront catalog)
 held_images=(run-go run-python run-node build-python)
 holds=$root/prototype/scripts/drill-holds.py
-org='' cmd='' merge=true merge_bot_prs=false work='' platform_clone=''
+owner='' owner_type=org prefix='' prefix_set=false cmd='' merge=true merge_bot_prs=false work='' platform_clone=''
 
 usage() { sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while (($#)); do
   case $1 in
-    --org) org=${2:?}; shift ;;
+    --owner) owner=${2:?}; shift ;;
+    --owner-type) owner_type=${2:?}; shift ;;
+    --org) owner=${2:?} owner_type=org; shift ;;
+    --prefix) prefix=$2 prefix_set=true; shift ;;
     --apply) APPLY=true ;;
     --offline) OFFLINE=true ;;
     --no-merge) merge=false ;;
@@ -61,16 +67,19 @@ while (($#)); do
   esac
   shift
 done
-[[ -n $org && -n $cmd ]] || usage 2
+[[ -n $owner && -n $cmd ]] || usage 2
+[[ $owner_type == user || $owner_type == org ]] || die "--owner-type is user or org" 2
+[[ $prefix_set == true ]] || prefix=$(default_prefix "$owner_type")
+showcase_names "$owner" "$prefix"
 [[ $APPLY == true && $OFFLINE == true ]] && die "--apply needs GitHub; drop --offline" 2
-work=${work:-$here/.work/$org}
-platform=$org/platform
+work=${work:-$here/.work/$owner}
+platform=$OWNER/$(repo_of platform)
 
 mode="dry run (--apply to change)"
 [[ $APPLY == true ]] && mode=apply
 [[ $OFFLINE == true ]] && mode="offline dry run"
 [[ $cmd == status ]] && mode="read-only"
-printf '%sCVE drill on GitHub%s: %s in %s, %s\n' "$_b" "$_n" "$cmd" "$org" "$mode"
+printf '%sCVE drill on GitHub%s: %s in %s (%s, %s…), %s\n' "$_b" "$_n" "$cmd" "$OWNER" "$platform" "$PREFIX" "$mode"
 
 # ---------------------------------------------------------------------------
 # change ACTION TITLE: apply or release the holds in a platform pull request.
@@ -135,7 +144,7 @@ change() {
   act gh label create DRILL --repo "$platform" --color B60205 --description "CVE drill (showcase demo, Act 6)" --force
   act gh pr create --repo "$platform" --head "$branch" --base main --title "$title" --body-file "$body" --label DRILL
   if [[ $merge != true ]]; then
-    note "--no-merge: merge it yourself once the gate is green; then: drill-github.sh --org $org status"
+    note "--no-merge: merge it yourself once the gate is green; then: drill-github.sh --owner $OWNER --owner-type $owner_type status"
     return 0
   fi
   say "Wait for the gate, then merge"
@@ -168,22 +177,22 @@ merge_bot_prs_after() {
   for app in "${apps[@]}"; do
     branch=factory/rebase/$app
     if [[ $APPLY != true ]]; then
-      act gh pr checks "$branch" --repo "$org/$app" --watch
-      act gh pr merge "$branch" --repo "$org/$app" --squash --delete-branch
+      act gh pr checks "$branch" --repo "$OWNER/$(repo_of "$app")" --watch
+      act gh pr merge "$branch" --repo "$OWNER/$(repo_of "$app")" --squash --delete-branch
       continue
     fi
     deadline=$(($(date +%s) + 3600))
     while :; do
-      n=$(look gh pr list --repo "$org/$app" --head "$branch" --state open --json number,updatedAt \
+      n=$(look gh pr list --repo "$OWNER/$(repo_of "$app")" --head "$branch" --state open --json number,updatedAt \
         --jq "map(select(.updatedAt >= \"$since\")) | .[0].number // empty" || true)
       [[ -n $n ]] && break
       (($(date +%s) < deadline)) || { warn "$app: no fleet pull request after an hour; skipping"; continue 2; }
       sleep 30
     done
     note "$app: pull request #$n"
-    checks_registered "$org/$app" "$n"
-    act gh pr checks "$n" --repo "$org/$app" --watch || { warn "$app #$n: checks failed; not merging"; continue; }
-    act gh pr merge "$n" --repo "$org/$app" --squash --delete-branch
+    checks_registered "$OWNER/$(repo_of "$app")" "$n"
+    act gh pr checks "$n" --repo "$OWNER/$(repo_of "$app")" --watch || { warn "$app #$n: checks failed; not merging"; continue; }
+    act gh pr merge "$n" --repo "$OWNER/$(repo_of "$app")" --squash --delete-branch
   done
 }
 
@@ -192,7 +201,7 @@ merge_bot_prs_after() {
 status() {
   [[ $OFFLINE == true ]] && { note "(offline) status reads GitHub; nothing to show"; return 0; }
   need gh jq
-  local drill t0 held app
+  local drill t0 held app run_yaml
   say "Last DRILL pull request in $platform"
   drill=$(look gh pr list --repo "$platform" --label DRILL --state merged --limit 1 --json number,title,mergedAt,url --jq '.[0] // empty' || true)
   if [[ -z $drill ]]; then
@@ -202,8 +211,12 @@ status() {
     jq -r '"   #\(.number) \(.title)\n   merged \(.mergedAt)  \(.url)"' <<<"$drill"
     t0=$(jq -r '.mergedAt | fromdateiso8601' <<<"$drill")
   fi
-  held=$(look gh api "repos/$platform/contents/images/_shared/run.yaml" -H 'Accept: application/vnd.github.raw' | grep -c 'DRILL hold' || true)
-  note "holds on platform main: $([[ ${held:-0} -gt 0 ]] && echo held || echo released)"
+  if run_yaml=$(look gh api "repos/$platform/contents/images/_shared/run.yaml" -H 'Accept: application/vnd.github.raw'); then
+    held=$(grep -c 'DRILL hold' <<<"$run_yaml" || true)
+    note "holds on platform main: $([[ ${held:-0} -gt 0 ]] && echo held || echo released)"
+  else
+    note "holds on platform main: unknown (can't read $platform)"
+  fi
 
   # runs REPO WORKFLOW: the workflow's runs since t0, timed from it.
   runs() {
@@ -215,22 +228,22 @@ status() {
          else \"\(.createdAt) → \(.updatedAt)\" end) + \"  \(.url)\"" || true
   }
 
-  say "platform: platform.yml"
+  say "$(repo_of platform): platform.yml"
   runs "$platform" platform.yml
   for app in "${apps[@]}"; do
-    say "$app"
-    runs "$org/$app" factory.yml
-    look gh pr list --repo "$org/$app" --search "head:factory/" --state all --limit 5 \
+    say "$(repo_of "$app")"
+    runs "$OWNER/$(repo_of "$app")" factory.yml
+    look gh pr list --repo "$OWNER/$(repo_of "$app")" --search "head:factory/" --state all --limit 5 \
       --json number,title,state,createdAt,mergedAt,url \
       --jq "map(select((.createdAt | fromdateiso8601) >= $t0 or .state == \"OPEN\")) | .[] |
         \"   PR #\(.number) \(.state) \(.title)  \(.url)\"" || true
     if command -v crane >/dev/null 2>&1; then
-      note "ghcr.io/$org/apps/$app:latest → $(look crane digest "ghcr.io/$org/apps/$app:latest" || echo '(unknown)')"
+      note "$REGISTRY/apps/$app:latest → $(look crane digest "$REGISTRY/apps/$app:latest" || echo '(unknown)')"
     fi
   done
-  say "showcase: estate.yml"
-  runs "$org/showcase" estate.yml
-  note "portal: https://$org.github.io/showcase/"
+  say "$SHOWCASE: estate.yml"
+  runs "$OWNER/$SHOWCASE" estate.yml
+  note "portal: $PAGES_URL"
 }
 
 case $cmd in
