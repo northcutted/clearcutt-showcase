@@ -129,6 +129,11 @@ and it was merged at 11:55:48Z (t = 0).
 
 ## Found
 
+The three factory points below were fixed in clearcutt-factory v0.3.0 (#57,
+#60, #59), which the showcase now runs: `notify` and the fleet
+no longer wait for the reproduction, and the drill re-locks only the held
+packages (`lock --update-package`).
+
 - [clearcutt-factory#57](https://github.com/northcutted/clearcutt-factory/issues/57):
   a refused rebase's rebuild PR is titled "Pin catalog to the newest run
   image", like a routine pin, though it is the one that needs a person.

@@ -71,7 +71,10 @@ Details in [`bringup/DRILL-RESULTS.md`](../bringup/DRILL-RESULTS.md).
 
 | Owner | Issue | Status |
 |---|---|---|
-| factory | [#57](https://github.com/northcutted/clearcutt-factory/issues/57): a refused rebase's rebuild pull request is titled "Pin … to the newest run image", like a routine pin | Filed |
+| factory | [#57](https://github.com/northcutted/clearcutt-factory/issues/57): a refused rebase's rebuild pull request is titled "Pin … to the newest run image", like a routine pin | Fixed in v0.3.0 ("Rebuild … on the newest run and build images") |
+| factory | [#60](https://github.com/northcutted/clearcutt-factory/issues/60): `notify` waits for the second-runner reproduction (about 2m20s) | Fixed in v0.3.0 (`images.yml` `reproduce: false` and `published`); the showcase calls it twice |
+| factory | [#59](https://github.com/northcutted/clearcutt-factory/issues/59): releasing a hold re-resolves every package of the image | Fixed in v0.3.0 (`lock --update-package`); `drill-github.sh` uses it |
+| factory | [#55](https://github.com/northcutted/clearcutt-factory/issues/55): the platform can't extend the profile it publishes | Fixed in v0.3.0 (`extends: {path: …}`); the platform uses it |
 
 ## Upstream (not filed)
 
