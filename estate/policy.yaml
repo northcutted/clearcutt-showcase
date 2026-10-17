@@ -1,0 +1,15 @@
+# What every image in estate/refs.txt must prove (plan §7). Run by
+# .github/workflows/estate.yml.
+apiVersion: clearcutt.dev/v1
+kind: VerificationPolicy
+# Provenance too: since clearcutt-factory v0.2.0 (#52) fleet.yml attests SLSA
+# provenance for every image it rebases, as images.yml does for builds, so the
+# fleet's steady state (rebased apps) meets it. A rebased image's recipe is
+# not-applicable: its verified rebase record leads to the original's.
+required: [signature, sbom, vulnerabilityScan, provenance, recipe]
+# The platform's trust policy, the same file factory builds and rebases with:
+# estate.yml checks out northcutted/clearcutt-showcase-platform's org/ into estate/.platform.
+trustPolicy: .platform/org/trust.yaml
+failOn: critical
+onlyFixed: true
+maxDaysBehind: 7
