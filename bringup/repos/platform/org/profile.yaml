@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/org.schema.json
-# The shared org profile: what every <ORG> repository builds with. Published
-# as ghcr.io/<ORG>/factory/org:1 by .github/workflows/profile.yml (which signs
+# The shared org profile: what every <NAME> repository builds with. Published
+# as <REGISTRY>/factory/org:1 by .github/workflows/profile.yml (which signs
 # it), together with trust.yaml. Each app repository's factory.org.yaml
 # extends it, adds its registry, and may only tighten the gate and policy
 # (clearcutt-factory #50, docs/adopting.md §6).
@@ -15,7 +15,7 @@ kind: OrgProfile
 defaults:
   platforms: [linux/amd64, linux/arm64]
   labels:
-    org.opencontainers.image.vendor: <ORG>
+    org.opencontainers.image.vendor: <NAME>
 
 builder:
   buildkit: moby/buildkit:v0.33.1
@@ -26,7 +26,7 @@ signing:
   mode: keyless                 # Sigstore, with each workflow run's OIDC identity
   trustPolicy: trust.yaml       # image and stack signers, shared with clearcutt-verify
   profile:                      # who signs this profile (profile push checks it; apps pin it in extends.signer)
-    certificateIdentity: https://github.com/<ORG>/platform/.github/workflows/profile.yml@refs/heads/main
+    certificateIdentity: https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/profile.yml@refs/heads/main
     certificateOIDCIssuer: https://token.actions.githubusercontent.com
 
 vulnerabilities:
@@ -39,4 +39,4 @@ policy:
   requiredLabels: [org.opencontainers.image.source]
   requireSignedStacks: true
   allowTOFU: false
-  allowedRegistries: [cgr.dev/chainguard/, ghcr.io/<ORG>/, docker.io/moby/, docker.io/docker/]
+  allowedRegistries: [cgr.dev/chainguard/, <REGISTRY>/, docker.io/moby/, docker.io/docker/]

@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
-# Stack go:1, published as ghcr.io/<ORG>/stacks/go:1 by
+# Stack go:1, published as <REGISTRY>/stacks/go:1 by
 # .github/workflows/stacks.yml and signed by that workflow (plan §3, §4).
 # Apps name it by reference.
 apiVersion: factory.clearcutt.dev/v1alpha1

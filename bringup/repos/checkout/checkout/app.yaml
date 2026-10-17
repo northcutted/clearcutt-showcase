@@ -5,9 +5,9 @@ kind: App
 metadata:
   name: checkout
 spec:
-  stack: ghcr.io/<ORG>/stacks/go:1
+  stack: <REGISTRY>/stacks/go:1
   labels:
-    org.opencontainers.image.source: https://github.com/<ORG>/checkout
+    org.opencontainers.image.source: https://github.com/<OWNER>/<PREFIX>checkout
     org.opencontainers.image.description: Checkout service (Go, stack go:1)
   test:
     http: {port: 8080, path: /healthz}

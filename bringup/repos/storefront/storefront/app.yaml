@@ -5,10 +5,10 @@ kind: App
 metadata:
   name: storefront
 spec:
-  stack: ghcr.io/<ORG>/stacks/node:1
+  stack: <REGISTRY>/stacks/node:1
   exclude: [node_modules, dist]
   labels:
-    org.opencontainers.image.source: https://github.com/<ORG>/storefront
+    org.opencontainers.image.source: https://github.com/<OWNER>/<PREFIX>storefront
     org.opencontainers.image.description: Storefront (Node.js 24 TypeScript, stack node:1)
   test:
     http: {port: 8080, path: /healthz}

@@ -1,7 +1,7 @@
 # Publishes the shared org profile (org/profile.yaml, with org/trust.yaml) as
-# ghcr.io/<ORG>/factory/org:1 and signs it keylessly as this workflow:
+# <REGISTRY>/factory/org:1 and signs it keylessly as this workflow:
 #
-#   https://github.com/<ORG>/platform/.github/workflows/profile.yml@refs/heads/main
+#   https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/profile.yml@refs/heads/main
 #
 # which is the signer every app repository's factory.org.yaml names in
 # extends.signer, and org/profile.yaml in signing.profile. Keep it a workflow
@@ -44,4 +44,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push and sign the shared profile
         id: push
-        run: clearcutt-factory profile push -f org/profile.yaml --ref ghcr.io/<ORG>/factory/org:1
+        run: clearcutt-factory profile push -f org/profile.yaml --ref <REGISTRY>/factory/org:1

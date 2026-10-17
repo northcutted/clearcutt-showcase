@@ -9,7 +9,7 @@
 apiVersion: factory.clearcutt.dev/v1alpha1
 kind: OrgProfile
 
-registry: ghcr.io/<ORG>/platform
+registry: <REGISTRY>/platform
 # Platform images carry line tags only (metadata.tags in each image.yaml), no latest.
 tags: []
 
@@ -17,7 +17,7 @@ defaults:
   base: cgr.dev/chainguard/wolfi-base:latest
   platforms: [linux/amd64, linux/arm64]
   labels:
-    org.opencontainers.image.vendor: <ORG>
+    org.opencontainers.image.vendor: <NAME>
 
 builder:
   buildkit: moby/buildkit:v0.33.1
@@ -40,4 +40,4 @@ policy:
   requiredLabels: [org.opencontainers.image.source]
   requireSignedStacks: true
   allowTOFU: false
-  allowedRegistries: [cgr.dev/chainguard/, ghcr.io/<ORG>/, docker.io/moby/, docker.io/docker/]
+  allowedRegistries: [cgr.dev/chainguard/, <REGISTRY>/, docker.io/moby/, docker.io/docker/]

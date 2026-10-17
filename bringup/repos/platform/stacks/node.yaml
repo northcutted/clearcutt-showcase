@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
-# Stack node:1, published as ghcr.io/<ORG>/stacks/node:1 by
+# Stack node:1, published as <REGISTRY>/stacks/node:1 by
 # .github/workflows/stacks.yml. Steps run on each target platform (emulated
 # for the other one), so native modules match.
 apiVersion: factory.clearcutt.dev/v1alpha1

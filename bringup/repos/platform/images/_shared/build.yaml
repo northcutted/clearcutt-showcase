@@ -11,5 +11,5 @@ metadata: {name: shared-build}
 spec:
   packages: [ca-certificates-bundle]
   labels:
-    org.opencontainers.image.source: https://github.com/<ORG>/platform
+    org.opencontainers.image.source: https://github.com/<OWNER>/<PREFIX>platform
   user: "65532"

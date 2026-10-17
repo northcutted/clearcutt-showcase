@@ -1,7 +1,7 @@
-# Pushes the stacks (stacks/*.yaml) to ghcr.io/<ORG>/stacks/<name>:1 and signs
+# Pushes the stacks (stacks/*.yaml) to <REGISTRY>/stacks/<name>:1 and signs
 # them keylessly as this workflow:
 #
-#   https://github.com/<ORG>/platform/.github/workflows/stacks.yml@refs/heads/main
+#   https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/stacks.yml@refs/heads/main
 #
 # which org/trust.yaml names as the only stack signer (role stack). It must
 # stay a workflow file of its own (called from platform.yml, or dispatched)
@@ -49,7 +49,7 @@ jobs:
       - name: Push and sign every stack
         id: push
         env:
-          REGISTRY: ghcr.io/<ORG>/stacks
+          REGISTRY: <REGISTRY>/stacks
         run: |
           set -euo pipefail
           : > "$RUNNER_TEMP/published.jsonl"

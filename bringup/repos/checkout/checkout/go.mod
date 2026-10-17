@@ -1,4 +1,4 @@
-module github.com/<ORG>/checkout
+module github.com/<OWNER>/<PREFIX>checkout
 
 go 1.27
 

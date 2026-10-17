@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/stack.schema.json
-# Stack python:1, published as ghcr.io/<ORG>/stacks/python:1 by
+# Stack python:1, published as <REGISTRY>/stacks/python:1 by
 # .github/workflows/stacks.yml. Steps run on each target platform (emulated
 # for the other one): wheels and C extensions are built for the platform they
 # ship on.

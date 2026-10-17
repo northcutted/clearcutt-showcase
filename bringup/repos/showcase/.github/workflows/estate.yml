@@ -1,9 +1,9 @@
-# Verifies the <ORG> estate with clearcutt-verify and publishes it with
+# Verifies the <NAME> estate with clearcutt-verify and publishes it with
 # clearcutt-portal to GitHub Pages (plan §7): daily (after the apps' daily fleet
 # runs), whenever a platform or app repository publishes or rebases
 # (clearcutt.estate-changed), and by hand.
 #
-#   1. Pull the last report bundle from ghcr.io/<ORG>/estate:latest, so this
+#   1. Pull the last report bundle from <REGISTRY>/estate:latest, so this
 #      run extends its history (--allow-missing: only "nothing there yet", the
 #      first run, may pass).
 #   2. estate verify over estate/refs.txt against estate/policy.yaml and the
@@ -12,7 +12,7 @@
 #   3. Push the new bundle back and sign it, also when the gate fails (that
 #      is the run to look at); upload it for the portal.
 #   4. clearcutt-portal's reusable workflow builds the site and deploys it to
-#      https://<ORG>.github.io/showcase/ (Pages source: GitHub Actions).
+#      <PAGES_URL> (Pages source: GitHub Actions).
 name: estate
 on:
   schedule:
@@ -38,7 +38,7 @@ jobs:
     outputs:
       bundle: ${{ steps.bundle.outputs.present }}
     env:
-      ESTATE: ghcr.io/<ORG>/estate:latest
+      ESTATE: <REGISTRY>/estate:latest
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # clearcutt-verify reads it for ghcr.io
     defaults:
       run:
@@ -49,7 +49,7 @@ jobs:
       # trusts exactly whom factory trusts. estate/policy.yaml names it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: ${{ github.repository_owner }}/platform
+          repository: <OWNER>/<PREFIX>platform
           path: estate/.platform
           sparse-checkout: org
           persist-credentials: false
@@ -79,7 +79,7 @@ jobs:
         run: |
           set +e
           clearcutt-verify estate verify --refs estate/refs.txt --policy estate/policy.yaml \
-            --name <ORG> --out dist/estate --platforms linux/amd64,linux/arm64 \
+            --name <NAME> --out dist/estate --platforms linux/amd64,linux/arm64 \
             --reproduce --fail-on failed
           code=$?
           echo "code=$code" >> "$GITHUB_OUTPUT"
@@ -128,5 +128,5 @@ jobs:
     permissions: {contents: read, pages: write, id-token: write}
     with:
       bundle-artifact: estate-bundle
-      title: <ORG> estate
+      title: <NAME> estate
       portal-version: <PORTAL_REF>

@@ -1,20 +1,21 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-factory/main/schemas/org.schema.json
 # Org profile for this repository. It extends the platform team's shared
-# profile (platform/org/profile.yaml, published as ghcr.io/<ORG>/factory/org:1),
-# which sets the builder, signing and trust (images: factory's workflows called
-# from the repository each image names as its source; stacks: the platform's
-# stacks workflow), the vulnerability gate, and policy. This file adds only
-# what the shared profile leaves to each repository, and could tighten, never
-# loosen, the gate and policy. Each manifest's lock pins the shared profile's
-# digest; the weekly lock update (or clearcutt.profile-published) moves it.
+# profile (org/profile.yaml in <OWNER>/<PREFIX>platform, published as
+# <REGISTRY>/factory/org:1), which sets the builder, signing and trust
+# (images: factory's workflows called from the repository each image names as
+# its source; stacks: the platform's stacks workflow), the vulnerability gate,
+# and policy. This file adds only what the shared profile leaves to each
+# repository, and could tighten, never loosen, the gate and policy. Each
+# manifest's lock pins the shared profile's digest; the weekly lock update
+# (or clearcutt.profile-published) moves it.
 apiVersion: factory.clearcutt.dev/v1alpha1
 kind: OrgProfile
 
 extends:
-  ref: ghcr.io/<ORG>/factory/org:1
+  ref: <REGISTRY>/factory/org:1
   signer: # who may sign the shared profile; checked whenever it is loaded
-    certificateIdentity: https://github.com/<ORG>/platform/.github/workflows/profile.yml@refs/heads/main
+    certificateIdentity: https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/profile.yml@refs/heads/main
     certificateOIDCIssuer: https://token.actions.githubusercontent.com
 
-registry: ghcr.io/<ORG>/apps # images go to <registry>/<metadata.name>
+registry: <REGISTRY>/apps # images go to <registry>/<metadata.name>
 tags: [latest]

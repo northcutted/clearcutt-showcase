@@ -1,26 +1,50 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/northcutted/clearcutt-verify/main/contract/trust-policy.v1.schema.json
-# Whose signatures <ORG> accepts, and for what (plan §4). One file, read by
-# clearcutt-factory (signing.trustPolicy in factory.org.yaml and in the shared
-# profile, org/profile.yaml) and by clearcutt-verify (the showcase repository's
-# estate/policy.yaml), so building, rebasing, and verifying the estate trust
-# the same signers.
+# Whose signatures the <NAME> showcase accepts, and for what (plan §4). One
+# file, read by clearcutt-factory (signing.trustPolicy in factory.org.yaml and
+# in the shared profile, org/profile.yaml) and by clearcutt-verify (the
+# showcase repository's estate/policy.yaml), so building, rebasing, and
+# verifying the estate trust the same signers.
+#
+# Images are signed inside factory's reusable workflows (images.yml when
+# built, fleet.yml when rebased), which anyone can call, so each signer also
+# names the one repository whose runs count (sourceRepository), requires the
+# image to name that repository as its source (sourceMatchesImage: its
+# org.opencontainers.image.source label), and requires the run to be on main.
+# One signer per repository, never the whole owner: <OWNER> may own other
+# repositories that call the same workflows.
 apiVersion: clearcutt.dev/v1
 kind: TrustPolicy
 signers:
-  # Images, built (images.yml) or rebased (fleet.yml). Inside a reusable
-  # workflow the certificate names the called workflow, which anyone can call,
-  # so the signature must also come from a run in one of <ORG>'s repositories,
-  # in the repository the image names as its source
-  # (org.opencontainers.image.source), on main.
-  - name: factory-builds
+  - name: platform-images
     roles: [image]
     identityRegexp: ^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet)\.yml@<FACTORY_SIGNER_REF>$
     issuer: https://token.actions.githubusercontent.com
-    sourceRepositoryOwner: https://github.com/<ORG>
+    sourceRepository: https://github.com/<OWNER>/<PREFIX>platform
+    sourceMatchesImage: true
+    sourceRef: refs/heads/main
+  - name: checkout-images
+    roles: [image]
+    identityRegexp: ^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet)\.yml@<FACTORY_SIGNER_REF>$
+    issuer: https://token.actions.githubusercontent.com
+    sourceRepository: https://github.com/<OWNER>/<PREFIX>checkout
+    sourceMatchesImage: true
+    sourceRef: refs/heads/main
+  - name: catalog-images
+    roles: [image]
+    identityRegexp: ^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet)\.yml@<FACTORY_SIGNER_REF>$
+    issuer: https://token.actions.githubusercontent.com
+    sourceRepository: https://github.com/<OWNER>/<PREFIX>catalog
+    sourceMatchesImage: true
+    sourceRef: refs/heads/main
+  - name: storefront-images
+    roles: [image]
+    identityRegexp: ^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet)\.yml@<FACTORY_SIGNER_REF>$
+    issuer: https://token.actions.githubusercontent.com
+    sourceRepository: https://github.com/<OWNER>/<PREFIX>storefront
     sourceMatchesImage: true
     sourceRef: refs/heads/main
   # Stacks: only the platform's own stacks workflow, on main.
   - name: platform-stacks
     roles: [stack]
-    identity: https://github.com/<ORG>/platform/.github/workflows/stacks.yml@refs/heads/main
+    identity: https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/stacks.yml@refs/heads/main
     issuer: https://token.actions.githubusercontent.com

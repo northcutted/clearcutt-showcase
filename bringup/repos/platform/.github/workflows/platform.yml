@@ -7,8 +7,9 @@
 #                  profile.yml the shared profile, each signed by its own
 #                  workflow identity; notify.yml dispatches
 #                  clearcutt.run-image-published / clearcutt.stack-published /
-#                  clearcutt.profile-published to every <ORG> repository with
-#                  the topic clearcutt-app; and the showcase estate is refreshed.
+#                  clearcutt.profile-published to every <OWNER> repository with
+#                  the topic clearcutt-app (only the three app repositories
+#                  may carry it); and the showcase estate is refreshed.
 #
 # Dispatching needs the GitHub App (CLEARCUTT_APP_ID variable and
 # CLEARCUTT_APP_PRIVATE_KEY secret) or CLEARCUTT_BOT_TOKEN; secrets are passed
@@ -32,7 +33,7 @@ jobs:
       manifests: images/*/image.yaml
       factory-version: <FACTORY_REF>
 
-  # Signed as https://github.com/<ORG>/platform/.github/workflows/stacks.yml@refs/heads/main,
+  # Signed as https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/stacks.yml@refs/heads/main,
   # the stack signer in org/trust.yaml. Unchanged stacks only move their tag.
   stacks:
     needs: images
@@ -99,7 +100,7 @@ jobs:
           client-id: ${{ env.APP_ID }}
           private-key: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: showcase
+          repositories: <SHOWCASE>
           permission-contents: write
       - name: Dispatch clearcutt.estate-changed
         env:
@@ -112,5 +113,5 @@ jobs:
           fi
           jq -n --arg source "$GITHUB_REPOSITORY" --arg sha "$GITHUB_SHA" \
             '{event_type: "clearcutt.estate-changed", client_payload: {source: $source, sha: $sha}}' |
-            gh api --method POST "repos/$OWNER/showcase/dispatches" --input -
-          echo "dispatched clearcutt.estate-changed to $OWNER/showcase"
+            gh api --method POST "repos/$OWNER/<SHOWCASE>/dispatches" --input -
+          echo "dispatched clearcutt.estate-changed to $OWNER/<SHOWCASE>"

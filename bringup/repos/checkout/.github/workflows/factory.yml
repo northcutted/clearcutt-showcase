@@ -52,7 +52,7 @@ jobs:
       group: fleet-${{ github.repository }}
       cancel-in-progress: false
     uses: northcutted/clearcutt-factory/.github/workflows/fleet.yml@<FACTORY_REF>
-    permissions: {contents: write, pull-requests: write, packages: write, id-token: write}
+    permissions: {contents: write, pull-requests: write, packages: write, id-token: write, attestations: write}
     with:
       apps: "*/app.yaml"
       factory-version: <FACTORY_REF>
@@ -94,7 +94,7 @@ jobs:
           client-id: ${{ env.APP_ID }}
           private-key: ${{ secrets.CLEARCUTT_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: showcase
+          repositories: <SHOWCASE>
           permission-contents: write
       - name: Dispatch clearcutt.estate-changed
         env:
@@ -107,5 +107,5 @@ jobs:
           fi
           jq -n --arg source "$GITHUB_REPOSITORY" --arg sha "$GITHUB_SHA" \
             '{event_type: "clearcutt.estate-changed", client_payload: {source: $source, sha: $sha}}' |
-            gh api --method POST "repos/$OWNER/showcase/dispatches" --input -
-          echo "dispatched clearcutt.estate-changed to $OWNER/showcase"
+            gh api --method POST "repos/$OWNER/<SHOWCASE>/dispatches" --input -
+          echo "dispatched clearcutt.estate-changed to $OWNER/<SHOWCASE>"

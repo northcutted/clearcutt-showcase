@@ -2,13 +2,13 @@
 # .github/workflows/estate.yml.
 apiVersion: clearcutt.dev/v1
 kind: VerificationPolicy
-# Not provenance: a rebased app (the fleet's steady state) carries a rebase
-# record instead of SLSA provenance, and clearcutt-verify treats provenance as
-# missing on it, not as not-applicable. Built images show their provenance in
-# the report all the same.
-required: [signature, sbom, vulnerabilityScan, recipe]
+# Provenance too: since clearcutt-factory v0.2.0 (#52) fleet.yml attests SLSA
+# provenance for every image it rebases, as images.yml does for builds, so the
+# fleet's steady state (rebased apps) meets it. A rebased image's recipe is
+# not-applicable: its verified rebase record leads to the original's.
+required: [signature, sbom, vulnerabilityScan, provenance, recipe]
 # The platform's trust policy, the same file factory builds and rebases with:
-# estate.yml checks out <ORG>/platform's org/ into estate/.platform.
+# estate.yml checks out <OWNER>/<PREFIX>platform's org/ into estate/.platform.
 trustPolicy: .platform/org/trust.yaml
 failOn: critical
 onlyFixed: true

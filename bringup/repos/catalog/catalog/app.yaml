@@ -6,10 +6,10 @@ kind: App
 metadata:
   name: catalog
 spec:
-  stack: ghcr.io/<ORG>/stacks/python:1
+  stack: <REGISTRY>/stacks/python:1
   exclude: [build, "*.egg-info", __pycache__]
   labels:
-    org.opencontainers.image.source: https://github.com/<ORG>/catalog
+    org.opencontainers.image.source: https://github.com/<OWNER>/<PREFIX>catalog
     org.opencontainers.image.description: Catalog service (Python 3.14, stack python:1)
   test:
     http: {port: 8080, path: /healthz}
