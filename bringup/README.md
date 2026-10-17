@@ -24,7 +24,7 @@ it was prepared and checked locally and with read-only (GET) calls (see
 | 3 | Credentials | A **GitHub App**: a `CLEARCUTT_APP_ID` variable and a `CLEARCUTT_APP_PRIVATE_KEY` secret in each of the five repositories (a personal account has no organization secrets). Its tokens expire within the hour and belong to no person. `--token pat` (`CLEARCUTT_BOT_TOKEN`) remains as a fallback | `--app-id`, `--app-key-file` |
 | 4 | Settings | Each repository: Actions may create and approve pull requests; Pages from GitHub Actions on the showcase. Branch protection and auto-merge later | `--protect` when wanted |
 | 5 | Drill staging | A platform PR labelled **DRILL** holds OpenSSL 3 at 3.6.3-r4 and libxml2 at 2.13.6-r3 ([demo-script Act 6](../docs/demo-script.md#act-6-cve-drill)) | `drill-github.sh stage` |
-| 6 | Tool versions | clearcutt-factory **v0.2.0** and clearcutt-portal **v0.1.0** (released); clearcutt-verify **v0.16.0** (at its release gate) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
+| 6 | Tool versions | clearcutt-factory **v0.3.0** and clearcutt-portal **v0.1.0** (released); clearcutt-verify **v0.16.0** (at its release gate) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
 | 7 | What the showcase repository starts from | This repository's history (plan §1), plus one commit adding [`repos/showcase/`](repos/showcase/) | `--showcase-ref` (default `HEAD`) |
 
 ### Names in a personal account
@@ -57,7 +57,7 @@ showcase's. All five get the topic `clearcutt-showcase`.
 
 ## 2. Before running
 
-**Releases.** clearcutt-factory v0.2.0 and clearcutt-portal v0.1.0 are
+**Releases.** clearcutt-factory v0.3.0 and clearcutt-portal v0.1.0 are
 published. clearcutt-verify v0.16.0 is waiting at its release gate (main at
 `365c373`): **approve it** in clearcutt-verify's Actions (the waiting
 `release` run). Until the tag exists, `--apply` refuses the steps that push
@@ -73,8 +73,8 @@ the other steps don't need it.
   never pushes packages (the workflows do, with their own token). For a
   rollback, also `delete_repo` (and `delete:packages`, which the token has).
 - `git`, `jq`, `perl`, `curl`; `python3` for the drill.
-- `clearcutt-factory` **v0.2.0** and `cosign`, for the `lock`s the script
-  runs before pushing (factory's [adopting guide](https://github.com/northcutted/clearcutt-factory/blob/v0.2.0/docs/adopting.md#1-install)
+- `clearcutt-factory` **v0.3.0** and `cosign`, for the `lock`s the script
+  runs before pushing (factory's [adopting guide](https://github.com/northcutted/clearcutt-factory/blob/v0.3.0/docs/adopting.md#1-install)
   shows how to install the release and check its signature).
 
 ### The GitHub App (personal account)
@@ -108,11 +108,11 @@ the app repositories; the platform and the apps dispatch
 
 ```sh
 cd ~/Development/clearcutt/clearcutt-showcase      # branch bringup/phase-3 (or wherever it is merged)
-# The defaults pin factory v0.2.0, verify v0.16.0, and portal v0.1.0.
+# The defaults pin factory v0.3.0, verify v0.16.0, and portal v0.1.0.
 
 # 0. Once: the gh scope, and the tools.
 gh auth refresh -h github.com -s workflow
-clearcutt-factory version                          # v0.2.0
+clearcutt-factory version                          # v0.3.0
 cosign version
 
 # 1. Rehearse: the whole plan without GitHub, then with GitHub reads only
@@ -278,15 +278,17 @@ transparency log (Rekor) stay there; they name the deleted repositories.
 
 - **Keyless signing, one trust policy, bound per repository.** See
   [Names](#names-in-a-personal-account). factory reads the trust policy through
-  `signing.trustPolicy` (in the platform's profile and the shared one),
+  `signing.trustPolicy` (in the shared profile, which every repository extends),
   clearcutt-verify through `showcase/estate/policy.yaml`. Stacks and the
   profile get their own identities by being workflow files of their own,
   called from `platform.yml`.
-- **Shared org profile (factory v0.2.0).** Apps extend
-  `$R/factory/org:1` and add only `registry` and `tags`; they can't loosen the
-  gate or policy. The platform's own `factory.org.yaml` repeats the shared
-  settings, because it can't extend a profile it publishes after its own
-  first build. Keep the two in step.
+- **Shared org profile.** Apps extend `$R/factory/org:1` (factory v0.2.0)
+  and add only `registry` and `tags`; they can't loosen the gate or policy.
+  The platform extends the same file by path (`extends: {path:
+  org/profile.yaml}`, factory v0.3.0, #55), adding its registry and base, so
+  it builds under exactly what it publishes, even before the first publish.
+  Each lock pins the profile's digest (`profile: {path, digest}`), which
+  equals the published one.
 - **Apps live in a subdirectory** (`checkout/app.yaml` in
   `clearcutt-showcase-checkout`). This was needed before factory v0.2.0
   (F17, fixed by #51: a root manifest's branch is now `factory/rebase/root-app`);
@@ -306,6 +308,16 @@ transparency log (Rekor) stay there; they name the deleted repositories.
   own daily run follows). The upstream `wolfi-base` stays out of
   `estate/refs.txt`: it has none of factory's evidence and would fail the
   policy forever.
+- **Notify before reproducing** (factory v0.3.0, #60). `images.yml` is
+  called twice: once with `reproduce: false`, which publishes, and once
+  with that call's `published` output, which only reproduces it on a second
+  runner. `notify`, `stacks`, and the fleet need only the first, so the apps
+  hear about a publish about 2m20s sooner (the drill's measurement), while
+  `estate-changed` also needs the second, so the estate sees the reproduction
+  attestations.
+- **Focused CVE pull requests** (factory v0.3.0, #59). `drill-github.sh`
+  re-locks the held images with `lock --update-package` naming only the held
+  packages, so the drill's pull requests move nothing else.
 - **Concurrency**: one fleet run and one lock update at a time per
   repository, waiting, never cancelling; one estate run at a time.
 

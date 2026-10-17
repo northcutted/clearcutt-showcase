@@ -5,10 +5,9 @@
 # extends it, adds its registry, and may only tighten the gate and policy
 # (clearcutt-factory #50, docs/adopting.md §6).
 #
-# It leaves out what differs per repository: registry and tags. Keep the gate,
-# policy, builder, and defaults here in step with ../factory.org.yaml (the
-# platform's own profile, which can't extend this one: it is published by the
-# same repository, after the platform's images are built).
+# It leaves out what differs per repository: registry, tags, and the base
+# image. The platform's own factory.org.yaml extends it by path, so the
+# platform builds under it too.
 apiVersion: factory.clearcutt.dev/v1alpha1
 kind: OrgProfile
 
