@@ -57,12 +57,9 @@ showcase's. All five get the topic `clearcutt-showcase`.
 
 ## 2. Before running
 
-**Releases.** clearcutt-factory v0.3.0 and clearcutt-portal v0.1.0 are
-published. clearcutt-verify v0.16.0 is waiting at its release gate (main at
-`365c373`): **approve it** in clearcutt-verify's Actions (the waiting
-`release` run). Until the tag exists, `--apply` refuses the steps that push
-the showcase (whose `estate.yml` pins `northcutted/clearcutt-verify@v0.16.0`);
-the other steps don't need it.
+**Releases.** clearcutt-factory v0.3.0, clearcutt-verify v0.16.0, and
+clearcutt-portal v0.1.0 are published (verify v0.16.0 was released on
+2026-10-17; the live showcase's `estate.yml` pins it).
 
 **On this machine:**
 

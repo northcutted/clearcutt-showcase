@@ -372,8 +372,9 @@ package index rather than the scanner. Wolfi package names have moved
    [`bringup/`](../bringup/README.md) and pushed them over SSH
    (`--git-protocol ssh`). The platform and all three apps are published and
    green; all nine images are verified and reproduced. The showcase's
-   `estate.yml` pins clearcutt-verify `365c373` (`--verify-version source`)
-   until v0.16.0 is approved. The GitHub App doesn't exist yet.
+   `estate.yml` pins clearcutt-verify v0.16.0 (released 2026-10-17; it ran
+   from the same commit, `365c373`, built from source until then). The
+   GitHub App doesn't exist yet.
 4. **Coordination. Waiting for the GitHub App.** `notify.yml` runs after each
    platform publish, but its dispatches fail (403) without the App, and the
    bot's pull requests get no CI until someone approves them or closes and
