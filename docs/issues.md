@@ -65,6 +65,14 @@ at its release approval.
 | F17 | factory | `fleet.yml` and `update-locks.yml` couldn't open a pull request for a manifest at the repository root (branch `factory/rebase/.` is not a valid ref) | Fixed in v0.2.0 ([#51](https://github.com/northcutted/clearcutt-factory/issues/51): `factory/rebase/root-app`). The bring-up keeps each app in a subdirectory anyway |
 | V13 | factory, verify | `required: [provenance]` failed every rebased image, which had a rebase record but no SLSA provenance | Fixed in factory v0.2.0 ([#52](https://github.com/northcutted/clearcutt-factory/issues/52): `fleet.yml` attests provenance for rebased images); the estate policy requires provenance again |
 
+## Found in the CVE drill on GitHub (2026-10-17)
+
+Details in [`bringup/DRILL-RESULTS.md`](../bringup/DRILL-RESULTS.md).
+
+| Owner | Issue | Status |
+|---|---|---|
+| factory | [#57](https://github.com/northcutted/clearcutt-factory/issues/57): a refused rebase's rebuild pull request is titled "Pin … to the newest run image", like a routine pin | Filed |
+
 ## Upstream (not filed)
 
 W1 (grype matches nothing for Wolfi's `openssl-4.0-*` packages or for libxml2

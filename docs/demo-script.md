@@ -95,8 +95,9 @@ own.
 
 ### Staging
 
-Done before the audience arrives, with `demo/drill.sh stage`. It opens and
-merges a platform PR labelled **DRILL**. That PR holds two packages at their last
+Done before the audience arrives, with `bringup/drill-github.sh stage`
+([results](../bringup/DRILL-RESULTS.md)). It opens and merges a platform PR
+labelled **DRILL**. That PR holds two packages at their last
 vulnerable Wolfi builds:
 
 - **OpenSSL 3** (`libcrypto3`/`libssl3`) at **3.6.3-r4**, in every run image
@@ -117,24 +118,31 @@ The fleet automation rebases checkout and storefront onto the held images;
 catalog's rebase is refused (it needs `libxml2.so.16`) and it is rebuilt on
 the held build image. Those are the "before" state the audience sees.
 
-### Live (about 20 min of wall clock; times from merge)
+### Live (about 22 min of wall clock; times from merge)
 
-| t | Step | What the audience sees | Proves |
-|---|---|---|---|
-| −2m | **Detect** | The portal and estate report show the High CVE in OpenSSL 3 in all run images and the 3 apps that inherit it, and the package index shows libxml2 2.13.6 in `run-python`, `build-python`, and `catalog` (the scanner doesn't flag it). The base graph shows which apps sit on which run image, proven by layer digest. | One fleet-wide answer to "who is affected?", including inherited exposure |
-| 0 | **Fix** | `drill.sh respond` opens the platform PR "Release the OpenSSL and libxml2 holds". The lock diff shows exact versions, CI's gate is green, and the PR is merged. | The fix is a reviewed, gated change to a lockfile |
-| ~8m | **Publish** | The run and build images are published, signed, and attested. The second runner reproduces them. `notify` dispatches to `checkout`, `catalog`, and `storefront`. | The platform's publish is the only manual step |
-| ~12m | **Rebase** | `checkout` and `storefront` report `linux/amd64: safe to rebase`, `linux/arm64: safe to rebase`. They are smoke-tested, scanned, gated, signed, and pushed with a **rebase record**. The rebase is repeated from that record, the digests match, and a pin PR opens in each app repository. | Patched in minutes, with no app-team action and no rebuild |
-| ~12m | **Refusal** | `catalog` reports `incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds…so needs libxml2.so.2`. Its job goes red, and it gets a **rebuild PR** instead. | Factory refuses an unsafe rebase, says exactly why, and routes it to a human |
-| ~20m | **Rebuild** | CI on catalog's PR rebuilds against the new build image (`libxml2.so.16`; needs F3) and passes. The catalog team merges it and it is published. | The fallback path is automated up to the review |
-| ~25m | **All clear** | The estate report and portal show zero fixable Highs, every app current on its run image, rebase records verified, and a before-and-after timeline. | The response is auditable after the fact |
+The "Measured" column is the first real run, on 2026-10-17 under
+`northcutted`, without the GitHub App: the apps' fleets were woken by hand
+and their pull requests reopened to start CI
+([`bringup/DRILL-RESULTS.md`](../bringup/DRILL-RESULTS.md) has every run and
+PR).
+
+| t | Measured | Step | What the audience sees | Proves |
+|---|---|---|---|---|
+| −2m | 17 fixable Highs (baseline 5) | **Detect** | The portal and estate report show the High CVE in OpenSSL 3 in all run images and the 3 apps that inherit it, and the package index shows libxml2 2.13.6 in `run-python`, `build-python`, and `catalog` (the scanner doesn't flag it). The base graph shows which apps sit on which run image, proven by layer digest. | One fleet-wide answer to "who is affected?", including inherited exposure |
+| 0 | gate 3m40s | **Fix** | `drill-github.sh respond` opens the platform PR "Release the OpenSSL and libxml2 holds". The lock diff shows exact versions, CI's gate is green, and the PR is merged. | The fix is a reviewed, gated change to a lockfile |
+| ~8m | published +5m10s; reproduced +7m25s; notify +7m35s | **Publish** | The run and build images are published, signed, and attested. The second runner reproduces them. `notify` dispatches to `checkout`, `catalog`, and `storefront`. | The platform's publish is the only manual step |
+| ~12m | pin PRs +11m58s, +12m05s | **Rebase** | `checkout` and `storefront` report `linux/amd64: safe to rebase`, `linux/arm64: safe to rebase`. They are smoke-tested, scanned, gated, signed, and pushed with a **rebase record**. The rebase is repeated from that record, the digests match, and a pin PR opens in each app repository. | Patched in minutes, with no app-team action and no rebuild |
+| ~12m | refused +9m45s; rebuild PR +9m35s | **Refusal** | `catalog` reports `incompatible: the new base lacks libraries the app loads: /app/lib/catalog/_feeds…so needs libxml2.so.2`. Its job goes red, and it gets a **rebuild PR** instead. | Factory refuses an unsafe rebase, says exactly why, and routes it to a human |
+| ~20m | CI 2m24s; merged +16m20s; published +21m38s | **Rebuild** | CI on catalog's PR rebuilds against the new build image (`libxml2.so.16`; needs F3) and passes. The catalog team merges it and it is published. | The fallback path is automated up to the review |
+| ~25m | estate and portal +27m03s: 5 fixable Highs, 9/9 verified | **All clear** | The estate report and portal show the drill's Highs gone (the 5 left are build-node's npm, as before the drill), every app current on its run image, rebase records verified, and a before-and-after timeline. | The response is auditable after the fact |
 
 Merge the pin PRs, or let auto-merge do it, before any other push to an app's
 `main`. Otherwise a rebuild from the old lock moves `latest` back (F6).
 
 ### Reset
 
-Run `drill.sh stage` again. This exercises the refusal path in reverse.
+Run `drill-github.sh stage` again. This exercises the refusal path in
+reverse (measured: catalog refused with `needs libxml2.so.16` at +9m51s).
 
 ## Act 7: The boring parts keep running (2 min)
 

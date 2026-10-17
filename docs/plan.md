@@ -10,11 +10,13 @@ It is also the first real cross-repository consumer of
 [clearcutt-factory](https://github.com/northcutted/clearcutt-factory). Every gap
 it hits becomes a focused fix upstream or an issue on the tool that owns it.
 
-Status: **phases 1 and 2 done; phase 3 (bring-up) prepared and decided**,
-waiting for clearcutt-verify v0.16.0's release approval. Nothing has been
-created on GitHub yet. The prototype is in [`prototype/`](../prototype/README.md)
-and what it found in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md); the
-bring-up is in [`bringup/`](../bringup/README.md). The decisions are in
+Status: **phases 1–3, 5, and 6 done; phase 4 waits for the GitHub App**.
+The showcase is live under the personal account `northcutted`
+(`clearcutt-showcase-*`; site: https://northcutted.github.io/clearcutt-showcase/),
+and the CVE drill has run end to end ([results](../bringup/DRILL-RESULTS.md)).
+The prototype is in [`prototype/`](../prototype/README.md) and what it found
+in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md); the bring-up is in
+[`bringup/`](../bringup/README.md). The decisions are in
 [§10](#10-decisions): the showcase lives in the personal account `northcutted`,
 not a new organization, so §1, §2, and §6 below describe the original
 organization proposal; [`bringup/README.md`](../bringup/README.md#names-in-a-personal-account)
@@ -365,27 +367,34 @@ package index rather than the scanner. Wolfi package names have moved
    bot branches, #51, and SLSA provenance on rebased images, #52) and
    clearcutt-portal **v0.1.0** are released; clearcutt-verify **v0.16.0**
    (V7–V12) is at its release approval.
-3. **Bring-up. Prepared and decided; waiting for verify v0.16.0.**
-   [`bringup/`](../bringup/README.md) holds the exact initial contents of the
-   five repositories (keyless signing, with a trust policy that names each
-   repository exactly; the shared org profile published by the platform and
-   extended by each app; images, stacks, profile, notify, update-locks,
-   fleet, and estate workflows) and `bringup.sh`, which creates the
-   repositories, applies the settings, sets the GitHub App credentials, and
-   pushes (dry run by default, idempotent), for `--owner northcutted
-   --owner-type user`. Manual: approving verify's release, creating and
-   installing the GitHub App, adding the `workflow` scope to gh, and
-   possibly package visibility. Checked locally with factory v0.2.0 and
-   verify main, and with GET-only dry runs; the sequence is in
-   [`bringup/README.md` §3](../bringup/README.md#3-the-exact-sequence).
-4. **Coordination.** Prepared with phase 3: `notify.yml` after each platform
-   publish, `repository_dispatch` handlers in each app, and
-   `clearcutt.estate-changed` to `showcase`. To check end to end: a run image
-   published leads to apps rebased within minutes.
-5. **Drill.** Scripted as [`bringup/drill-github.sh stage|respond|status`](../bringup/drill-github.sh);
-   rehearse and time it after bring-up.
-6. **Verify and portal.** `estate.yml` is prepared (verify v0.16.0, portal
-   v0.1.0); it runs once both are released.
+3. **Bring-up. Done (2026-10-17).** `bringup.sh` created the five
+   `clearcutt-showcase*` repositories under `northcutted` from
+   [`bringup/`](../bringup/README.md) and pushed them over SSH
+   (`--git-protocol ssh`). The platform and all three apps are published and
+   green; all nine images are verified and reproduced. The showcase's
+   `estate.yml` pins clearcutt-verify `365c373` (`--verify-version source`)
+   until v0.16.0 is approved. The GitHub App doesn't exist yet.
+4. **Coordination. Waiting for the GitHub App.** `notify.yml` runs after each
+   platform publish, but its dispatches fail (403) without the App, and the
+   bot's pull requests get no CI until someone approves them or closes and
+   reopens them. In the drill the apps were woken with `workflow_dispatch`
+   instead, which showed the receiving side works: the platform publish was
+   followed by pin PRs in about 7 minutes.
+5. **Drill. Done (2026-10-17)**, with
+   [`bringup/drill-github.sh`](../bringup/drill-github.sh) `stage` and
+   `respond` ([results](../bringup/DRILL-RESULTS.md); timings in
+   [demo-script Act 6](demo-script.md#act-6-cve-drill)). Respond, from the
+   platform merge: images published at +5m10s; checkout's and storefront's
+   rebases and pin PRs at +12m; catalog's rebase refused (`needs
+   libxml2.so.2`) at +9m45s, with a rebuild PR that moves the build image
+   too; every app patched and published at **+21m38s**; estate and portal at
+   +27m. Fixable Highs went 5 → 17 (before) → 5 (after); every image stayed
+   verified and reproduced. Found
+   [clearcutt-factory#57](https://github.com/northcutted/clearcutt-factory/issues/57)
+   (a rebuild PR titled as a pin).
+6. **Verify and portal. Done.** `estate.yml` runs daily, on dispatch, and by
+   hand, keeps its history in `ghcr.io/northcutted/clearcutt-showcase/estate`,
+   and deploys the portal; the drill's before and after are in that history.
 
 ## 10. Decisions
 

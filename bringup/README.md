@@ -234,6 +234,13 @@ bringup/drill-github.sh --owner northcutted --owner-type user --apply respond   
 bringup/drill-github.sh --owner northcutted --owner-type user status
 ```
 
+Without the GitHub App, add `--wake-apps` (start each app's fleet once the
+platform has published, in place of `notify`), `--merge-bot-prs` (which
+closes and reopens the bot's pull requests to start their CI, then merges
+them when green), and `--estate` (refresh verify and the portal at the end).
+`continue` resumes from the latest DRILL pull request after `--no-merge` or
+an interruption. The first real run is in [`DRILL-RESULTS.md`](DRILL-RESULTS.md).
+
 Expected after `respond` (demo-script Act 6): checkout and storefront rebased
 (`safe to rebase` on both platforms) with pin pull requests; catalog's fleet
 job red with `needs libxml2.so.2` and a rebuild pull request that moves the
