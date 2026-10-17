@@ -375,7 +375,7 @@ package index rather than the scanner. Wolfi package names have moved
    `estate.yml` pins clearcutt-verify v0.16.0 (released 2026-10-17; it ran
    from the same commit, `365c373`, built from source until then). The
    GitHub App doesn't exist yet.
-4. **Coordination. Waiting for the GitHub App.** `notify.yml` runs after each
+4. **Coordination. Receivers verified; sending waits for the GitHub App.** On 2026-10-17 the three events `notify` sends were posted by hand to the live repositories: `clearcutt.run-image-published` started checkout's fleet, `clearcutt.stack-published` its lock update, and `clearcutt.estate-changed` the showcase's estate and portal, all green. `notify.yml` runs after each
    platform publish, but its dispatches fail (403) without the App, and the
    bot's pull requests get no CI until someone approves them or closes and
    reopens them. In the drill the apps were woken with `workflow_dispatch`
