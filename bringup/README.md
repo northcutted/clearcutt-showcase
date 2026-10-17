@@ -76,6 +76,21 @@ clearcutt-portal v0.1.0 are published (verify v0.16.0 was released on
 
 ### The GitHub App (personal account)
 
+**The quick way (two clicks).** Open [`create-app.html`](create-app.html) in a
+browser and press **Create**, then **Create GitHub App** on GitHub. GitHub
+redirects to the showcase portal with `?code=…` in the address bar. Then:
+
+```sh
+bringup/bringup.sh app-from-code --owner northcutted --owner-type user --code CODE --apply
+```
+
+This exchanges the code (single use, valid for an hour) for the App's Client
+ID and private key, which it keeps in `~/.config/clearcutt-showcase/` (mode
+0600, never printed), and sets the credentials on the five repositories. It
+prints the link to **install** the App: choose *Only select repositories* and
+pick the five. The manual way follows.
+
+
 Create it after the repositories exist (step 3 below), so it can be installed
 on exactly them:
 

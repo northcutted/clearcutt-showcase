@@ -12,6 +12,9 @@
 #                --skip-credentials), then push platform, the apps (after the
 #                platform's first publish), and the showcase; Pages
 #   credentials  only the credentials, e.g. once the GitHub App exists
+#   app-from-code  --code CODE: exchange the code GitHub returns after
+#                bringup/create-app.html creates the App, keep its private key in
+#                ~/.config/clearcutt-showcase/, and set the credentials
 #
 # Names. A personal account (--owner-type user) gets prefixed repositories,
 # unmistakable among its others: PREFIXplatform, PREFIXcheckout,
@@ -74,12 +77,12 @@ cmd=up owner='' owner_type=org prefix='' prefix_set=false token=app secrets_at='
 app_id=${CLEARCUTT_APP_ID:-} app_key_file=${CLEARCUTT_APP_PRIVATE_KEY_FILE:-}
 factory_ref=v0.3.0 verify_ref=v0.16.0 verify_version='' portal_ref=v0.1.0
 showcase_ref=HEAD steps='' protect=false wait_publish=false reset_secrets=false
-skip_credentials=false work='' git_protocol=https
+skip_credentials=false work='' git_protocol=https app_code=''
 
 usage() { sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while (($#)); do
   case $1 in
-    up | credentials) cmd=$1 ;;
+    up | credentials | app-from-code) cmd=$1 ;;
     --owner) owner=${2:?}; shift ;;
     --owner-type) owner_type=${2:?}; shift ;;
     --org) owner=${2:?} owner_type=org; shift ;;
@@ -90,6 +93,7 @@ while (($#)); do
     --app-id) app_id=${2:?}; shift ;;
     --app-key-file) app_key_file=${2:?}; shift ;;
     --skip-credentials) skip_credentials=true ;;
+    --code) app_code=${2:?}; shift ;;
     --git-protocol) git_protocol=${2:?}; shift ;;
     --reset-secrets) reset_secrets=true ;;
     --secrets-at) secrets_at=${2:?}; shift ;;
@@ -122,7 +126,10 @@ else
   [[ $secrets_at == org || $secrets_at == repo ]] || die "--secrets-at is org or repo" 2
 fi
 [[ $APPLY == true && $OFFLINE == true ]] && die "--apply needs GitHub; drop --offline" 2
-if [[ $cmd == credentials ]]; then
+if [[ $cmd == app-from-code ]]; then
+  token=app
+fi
+if [[ $cmd == credentials || $cmd == app-from-code ]]; then
   steps=credentials
 elif [[ -z $steps ]]; then
   steps=repos,settings,credentials,platform,apps,showcase,pages
@@ -417,6 +424,28 @@ missing_somewhere() {
   return 1
 }
 
+install_url=''
+if [[ $cmd == app-from-code ]]; then
+  say "The GitHub App, from create-app.html's code"
+  [[ -n $app_code ]] || die "app-from-code needs --code: the code GitHub put in the address bar after create-app.html" 2
+  if [[ $APPLY == true ]]; then
+    # The code is single-use and expires after an hour. The response holds
+    # the App's private key: it goes to a 0600 file and is never printed.
+    conv=$(gh api --method POST "app-manifests/$app_code/conversions") ||
+      die "GitHub didn't accept the code (it works once, within an hour of creating the App)"
+    slug=$(jq -r .slug <<<"$conv")
+    app_id=$(jq -r .client_id <<<"$conv")
+    keydir=${XDG_CONFIG_HOME:-$HOME/.config}/clearcutt-showcase
+    mkdir -p "$keydir" && chmod 700 "$keydir"
+    app_key_file=$keydir/$slug.private-key.pem
+    (umask 077 && jq -r .pem <<<"$conv" > "$app_key_file")
+    unset conv
+    ok "created the App $slug (Client ID $app_id); private key in $app_key_file"
+    install_url="https://github.com/apps/$slug/installations/new"
+  else
+    note "would exchange the code (POST /app-manifests/CODE/conversions), keep the private key in ~/.config/clearcutt-showcase/, and set the credentials below"
+  fi
+fi
 if step credentials; then
   say "Credentials for the workflows: $token, per $secrets_at"
   if [[ $APPLY == true ]]; then
@@ -622,7 +651,10 @@ if step protect; then
 fi
 
 say "Next"
-if [[ $cmd == credentials ]]; then
+if [[ -n $install_url ]]; then
+  note "now install the App on the five repositories (Only select repositories): $install_url"
+fi
+if [[ $cmd == credentials || $cmd == app-from-code ]]; then
   note "the workflows pick the credentials up on their next run"
 else
   note "1. https://github.com/$owner/$(repo_of platform)/actions: platform green (images, stacks, profile, notify)"
