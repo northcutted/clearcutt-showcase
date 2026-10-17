@@ -71,6 +71,9 @@ look() {
   "$@" 2>/dev/null
 }
 
+# lc TEXT: TEXT in lowercase (bash 3.2 has no ${v,,}).
+lc() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
+
 # need TOOL...: fail unless every tool is on PATH.
 need() {
   local t missing=()
@@ -100,3 +103,30 @@ ask() {
 git_push() {
   act git -C "$1" -c credential.helper= -c 'credential.helper=!gh auth git-credential' push -u origin "$2"
 }
+
+# showcase_names OWNER PREFIX: the names everything else derives from.
+#   PREFIX empty (an organization's own repositories): platform, checkout,
+#     catalog, storefront, showcase; images under ghcr.io/OWNER.
+#   PREFIX set (e.g. clearcutt-showcase- in a personal account): PREFIXplatform,
+#     PREFIXcheckout, PREFIXcatalog, PREFIXstorefront, and the showcase named
+#     PREFIX without its dash; images under ghcr.io/OWNER/<that name>.
+# Sets OWNER, PREFIX, SHOWCASE, NAME (the estate's name), REGISTRY, PAGES_URL
+# for the scripts that source this file.
+# shellcheck disable=SC2034
+showcase_names() {
+  OWNER=$1 PREFIX=$2
+  if [[ -n $PREFIX ]]; then
+    SHOWCASE=${PREFIX%-} NAME=${PREFIX%-}
+    REGISTRY=ghcr.io/$OWNER/$SHOWCASE
+  else
+    SHOWCASE=showcase NAME=$OWNER
+    REGISTRY=ghcr.io/$OWNER
+  fi
+  PAGES_URL=https://$OWNER.github.io/$SHOWCASE/
+}
+
+# repo_of ROLE: the repository name of platform, checkout, …, or showcase.
+repo_of() { if [[ $1 == showcase ]]; then printf '%s' "$SHOWCASE"; else printf '%s' "$PREFIX$1"; fi; }
+
+# default_prefix OWNER_TYPE: clearcutt-showcase- for a personal account, else none.
+default_prefix() { if [[ $1 == user ]]; then printf 'clearcutt-showcase-'; fi; }
