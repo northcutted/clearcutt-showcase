@@ -49,8 +49,8 @@
 #   --platform-clone URL  clone the platform from URL instead of GitHub (a
 #                     local copy, to rehearse the dry run without GitHub)
 #
-# stage and respond need gh, git, python3, and clearcutt-factory (the release
-# the platform uses) to re-lock the held images.
+# stage and respond need gh, git, python3, and clearcutt-factory v0.3.0 or
+# later (lock --update-package) to re-lock the held images.
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "$here/.." && pwd)
@@ -99,6 +99,19 @@ mode="dry run (--apply to change)"
 [[ $cmd == status ]] && mode="read-only"
 printf '%sCVE drill on GitHub%s: %s in %s (%s, %s…), %s\n' "$_b" "$_n" "$cmd" "$OWNER" "$platform" "$PREFIX" "$mode"
 
+# held_packages DIR IMAGE: the drill's packages that IMAGE's manifest lists
+# (outside comments) or its lock pins (a package's name:), the only ones lock
+# --update-package accepts, comma-separated: OpenSSL 3 in the run images,
+# libxml2 under either name in run-python and build-python.
+held_packages() {
+  local p out=() m=$1/images/$2/image.yaml l=$1/images/$2/image.lock.yaml
+  for p in libcrypto3 libssl3 libxml2 libxml2-16 libxml2-dev libxml2-utils; do
+    if sed 's/#.*//' "$m" | grep -qE "(^|[^A-Za-z0-9_.-])$p([^A-Za-z0-9_.-]|\$)" ||
+      grep -qE "^ *(- )?name: $p\$" "$l"; then out+=("$p"); fi
+  done
+  (IFS=,; printf '%s' "${out[*]}")
+}
+
 # ---------------------------------------------------------------------------
 # change ACTION TITLE: apply or release the holds in a platform pull request.
 change() {
@@ -134,8 +147,10 @@ change() {
     return 0
   fi
   git -C "$dir" --no-pager diff --stat | sed 's/^/   /'
-  note "re-lock what the holds touch (the PR's gate checks lock and Containerfile are current)"
-  for img in "${held_images[@]}"; do act_in "$dir" clearcutt-factory lock -f "images/$img/image.yaml"; done
+  note "re-lock only the held packages (factory v0.3.0 lock --update-package), so the PR moves nothing else"
+  for img in "${held_images[@]}"; do
+    act_in "$dir" clearcutt-factory lock -f "images/$img/image.yaml" --update-package "$(held_packages "$dir" "$img")"
+  done
   act git -C "$dir" add -A
   act git -C "$dir" commit -q -m "$title"
   git_push "$dir" "$branch"
