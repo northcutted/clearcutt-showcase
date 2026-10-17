@@ -37,6 +37,8 @@
 #                         is never printed or put on a command line
 #   --skip-credentials    up: create and push now, set the credentials later
 #                         with the credentials subcommand
+#   --git-protocol P      https (default: pushes with gh's token, which needs
+#                         the workflow scope) or ssh (pushes with your SSH key)
 #   --reset-secrets       set secrets again even when they exist
 #   --secrets-at org|repo organizations: org secrets and variables scoped to
 #                         the five repositories (default), or each repository.
@@ -72,7 +74,7 @@ cmd=up owner='' owner_type=org prefix='' prefix_set=false token=app secrets_at='
 app_id=${CLEARCUTT_APP_ID:-} app_key_file=${CLEARCUTT_APP_PRIVATE_KEY_FILE:-}
 factory_ref=v0.2.0 verify_ref=v0.16.0 verify_version='' portal_ref=v0.1.0
 showcase_ref=HEAD steps='' protect=false wait_publish=false reset_secrets=false
-skip_credentials=false work=''
+skip_credentials=false work='' git_protocol=https
 
 usage() { sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while (($#)); do
@@ -88,6 +90,7 @@ while (($#)); do
     --app-id) app_id=${2:?}; shift ;;
     --app-key-file) app_key_file=${2:?}; shift ;;
     --skip-credentials) skip_credentials=true ;;
+    --git-protocol) git_protocol=${2:?}; shift ;;
     --reset-secrets) reset_secrets=true ;;
     --secrets-at) secrets_at=${2:?}; shift ;;
     --factory-ref) factory_ref=${2:?}; shift ;;
@@ -178,7 +181,9 @@ if [[ $OFFLINE != true ]]; then
   # workflow (pushing .github/workflows), admin:org (organization settings
   # and secrets). Nothing here pushes packages, so no write:packages.
   needed=(repo)
-  if step platform || step apps || step showcase; then needed+=(workflow); fi
+  # Pushing over SSH authenticates with your SSH key, which OAuth scopes
+  # don't limit; over HTTPS gh's token needs workflow for .github/workflows.
+  if [[ $git_protocol == https ]] && { step platform || step apps || step showcase; }; then needed+=(workflow); fi
   if [[ $owner_type == org ]] && { step settings || { step credentials && [[ $secrets_at == org ]]; }; }; then needed+=(admin:org); fi
   scopes=$(gh api -i user 2>/dev/null | tr -d '\r' | sed -n 's/^[Xx]-[Oo][Aa]uth-[Ss]copes: //p')
   if [[ -z $scopes ]]; then
@@ -462,7 +467,7 @@ push_new() {
   act git -C "$dir" init -q -b main
   act git -C "$dir" add -A
   act git -C "$dir" commit -q -m "$msg"
-  act git -C "$dir" remote add origin "https://github.com/$owner/$r.git"
+  act git -C "$dir" remote add origin "$(remote_url "$owner" "$r")"
   git_push "$dir" main
 }
 
@@ -566,7 +571,7 @@ if step showcase; then
     # dry run prepares it too.
     git clone -q --no-checkout "$root" "$dir"
     git -C "$dir" checkout -q -B main "$sha"
-    git -C "$dir" remote set-url origin "https://github.com/$owner/$SHOWCASE.git"
+    git -C "$dir" remote set-url origin "$(remote_url "$owner" "$SHOWCASE")"
     cp -R "$work/render/showcase/." "$dir/"
     git -C "$dir" add -A
     git -C "$dir" -c user.name="$(git -C "$root" config user.name || echo bringup)" \

@@ -101,7 +101,20 @@ ask() {
 # git_push DIR BRANCH: push DIR's BRANCH to its origin, authenticating with gh
 # (no change to the global git configuration).
 git_push() {
-  act git -C "$1" -c credential.helper= -c 'credential.helper=!gh auth git-credential' push -u origin "$2"
+  if [[ ${git_protocol:-https} == ssh ]]; then
+    act git -C "$1" push -u origin "$2"
+  else
+    act git -C "$1" -c credential.helper= -c 'credential.helper=!gh auth git-credential' push -u origin "$2"
+  fi
+}
+
+# remote_url OWNER REPO: the repository's URL for --git-protocol.
+remote_url() {
+  case ${git_protocol:-https} in
+    ssh) printf 'git@github.com:%s/%s.git' "$1" "$2" ;;
+    https) printf 'https://github.com/%s/%s.git' "$1" "$2" ;;
+    *) die "--git-protocol is https or ssh, not $git_protocol" ;;
+  esac
 }
 
 # showcase_names OWNER PREFIX: the names everything else derives from.
