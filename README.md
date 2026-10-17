@@ -21,3 +21,5 @@ Documents:
 - [Prototype](prototype/README.md): the whole fleet on one laptop (phase 1), and what it found.
 - [Bring-up](bringup/README.md): how this was set up, and the drill driver
   (`bringup/drill-github.sh stage|respond|status`).
+- [CVE drill results](bringup/DRILL-RESULTS.md): the drill run for real, with every run, pull
+  request, and timing.
