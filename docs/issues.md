@@ -5,6 +5,10 @@ Phase 1 (the local prototype) found F9–F16, V8–V12, and P7; evidence and rep
 steps are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md). Statuses are
 as of 2026-10-16. "PR" means opened, not yet merged.
 
+**Update 2026-10-17:** every pull request below is merged. clearcutt-factory
+v0.2.0 and clearcutt-portal v0.1.0 are released; clearcutt-verify v0.16.0 is
+at its release approval.
+
 ## clearcutt-factory
 
 | Plan | Issue | Status |
@@ -54,14 +58,12 @@ as of 2026-10-16. "PR" means opened, not yet merged.
 | P6 | [#7](https://github.com/northcutted/clearcutt-portal/issues/7): compare runs, per image | [PR #8](https://github.com/northcutted/clearcutt-portal/pull/8); CVE IDs fixed per run in [PR #9](https://github.com/northcutted/clearcutt-portal/pull/9) |
 | P7 | Show stacks, `packagesSource`, per-image history | [PR #4](https://github.com/northcutted/clearcutt-portal/pull/4) |
 
-## Found while preparing the bring-up (not filed yet)
+## Found while preparing the bring-up
 
-Details in [`bringup/README.md` §8](../bringup/README.md#8-found-while-preparing-not-filed).
-
-| Plan | Owner | Gap | Workaround in the bring-up |
+| Plan | Owner | Gap | Status |
 |---|---|---|---|
-| F17 | factory | `fleet.yml` and `update-locks.yml` can't open a pull request for a manifest at the repository root (branch `factory/rebase/.` is not a valid ref) | Each app lives in a subdirectory (`checkout/app.yaml`) |
-| V13 | verify | `required: [provenance]` fails every rebased image, which has a rebase record instead of SLSA provenance | The estate policy doesn't require provenance |
+| F17 | factory | `fleet.yml` and `update-locks.yml` couldn't open a pull request for a manifest at the repository root (branch `factory/rebase/.` is not a valid ref) | Fixed in v0.2.0 ([#51](https://github.com/northcutted/clearcutt-factory/issues/51): `factory/rebase/root-app`). The bring-up keeps each app in a subdirectory anyway |
+| V13 | factory, verify | `required: [provenance]` failed every rebased image, which had a rebase record but no SLSA provenance | Fixed in factory v0.2.0 ([#52](https://github.com/northcutted/clearcutt-factory/issues/52): `fleet.yml` attests provenance for rebased images); the estate policy requires provenance again |
 
 ## Upstream (not filed)
 

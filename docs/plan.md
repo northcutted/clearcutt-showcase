@@ -10,14 +10,23 @@ It is also the first real cross-repository consumer of
 [clearcutt-factory](https://github.com/northcutted/clearcutt-factory). Every gap
 it hits becomes a focused fix upstream or an issue on the tool that owns it.
 
-Status: **phase 1 (local prototype) done; phase 2 fixes in review; phase 3
-(bring-up) prepared**. Nothing has been created on GitHub yet. The prototype
-is in [`prototype/`](../prototype/README.md) and what it found in
-[`prototype/FINDINGS.md`](../prototype/FINDINGS.md); the bring-up, ready to
-run once the decisions in [§10](#10-decisions-needed) are made and the tools
-are released, is in [`bringup/`](../bringup/README.md).
+Status: **phases 1 and 2 done; phase 3 (bring-up) prepared and decided**,
+waiting for clearcutt-verify v0.16.0's release approval. Nothing has been
+created on GitHub yet. The prototype is in [`prototype/`](../prototype/README.md)
+and what it found in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md); the
+bring-up is in [`bringup/`](../bringup/README.md). The decisions are in
+[§10](#10-decisions): the showcase lives in the personal account `northcutted`,
+not a new organization, so §1, §2, and §6 below describe the original
+organization proposal; [`bringup/README.md`](../bringup/README.md#names-in-a-personal-account)
+has the names actually used.
 
 ## 1. Organization and repositories
+
+> **Decided (§10):** the personal account `northcutted`, with the repositories
+> `clearcutt-showcase-{platform,checkout,catalog,storefront}` and
+> `clearcutt-showcase` (this repository), and images under
+> `ghcr.io/northcutted/clearcutt-showcase/`. Read "the org" below as that
+> account and those names.
 
 Use a dedicated GitHub organization, **`clearcutt-showcase`** (the name is free;
 Free plan, all repositories public). A dedicated org gives us:
@@ -217,6 +226,11 @@ template.
 
 ## 6. Settings and secrets (I'll ask before each change)
 
+> **Decided (§10):** a personal account has no organization settings or
+> secrets, so each of the five repositories gets the Actions setting and a
+> GitHub App's `CLEARCUTT_APP_ID` variable and `CLEARCUTT_APP_PRIVATE_KEY`
+> secret; the PAT below is the fallback.
+
 | Where | Setting / secret | Why |
 |---|---|---|
 | Org | Create `clearcutt-showcase` | §1 |
@@ -345,25 +359,25 @@ package index rather than the scanner. Wolfi package names have moved
    GitHub). New gaps F9–F16, V8–V12, P7, W1–W2 are in
    [`prototype/FINDINGS.md`](../prototype/FINDINGS.md); V10 and F9 should be
    fixed before bring-up.
-2. **Tool fixes.** F1 and F2 shipped in factory v0.1.1. **In review,
-   awaiting merge and release:** every other phase-1 gap has a focused pull
-   request, listed in [`issues.md`](issues.md): factory #30, #32, #33, #36,
-   #45, #46, #47, #48 (landed together by #49) and #50 (F5, shared org
-   profiles), for v0.2.0; verify #68, #69, #71 (V7–V12), for v0.16.0; portal
-   #3, #4, #8, #9 (P3, P5–P7), for its first release, v0.1.0.
-3. **Bring-up. Prepared, awaiting the §10 decisions and those releases.**
+2. **Tool fixes. Done.** Every phase-1 gap's pull request is merged
+   ([`issues.md`](issues.md)): clearcutt-factory **v0.2.0** (F2–F16, F5 shared
+   org profiles, and two found while preparing the bring-up: root manifests'
+   bot branches, #51, and SLSA provenance on rebased images, #52) and
+   clearcutt-portal **v0.1.0** are released; clearcutt-verify **v0.16.0**
+   (V7–V12) is at its release approval.
+3. **Bring-up. Prepared and decided; waiting for verify v0.16.0.**
    [`bringup/`](../bringup/README.md) holds the exact initial contents of the
-   five repositories (keyless signing bound to the caller repository; one
-   trust policy for factory and verify; the shared org profile published by
-   `platform` and extended by each app; images, stacks, profile, notify,
-   update-locks, fleet, and estate workflows) and `bringup.sh`, which creates
-   the repositories, applies the settings, sets the credentials, and pushes
-   (dry run by default, idempotent). Manual: creating the org and the GitHub
-   App, approving verify's release gate, and possibly package visibility.
-   Checked locally: actionlint and shellcheck clean; the platform locks with
-   the keyless profile; the shared profile packs, and an app profile extends
-   it; verify accepts the estate policy. Found while preparing: F17 and V13
-   ([`bringup/README.md` §8](../bringup/README.md#8-found-while-preparing-not-filed)).
+   five repositories (keyless signing, with a trust policy that names each
+   repository exactly; the shared org profile published by the platform and
+   extended by each app; images, stacks, profile, notify, update-locks,
+   fleet, and estate workflows) and `bringup.sh`, which creates the
+   repositories, applies the settings, sets the GitHub App credentials, and
+   pushes (dry run by default, idempotent), for `--owner northcutted
+   --owner-type user`. Manual: approving verify's release, creating and
+   installing the GitHub App, adding the `workflow` scope to gh, and
+   possibly package visibility. Checked locally with factory v0.2.0 and
+   verify main, and with GET-only dry runs; the sequence is in
+   [`bringup/README.md` §3](../bringup/README.md#3-the-exact-sequence).
 4. **Coordination.** Prepared with phase 3: `notify.yml` after each platform
    publish, `repository_dispatch` handlers in each app, and
    `clearcutt.estate-changed` to `showcase`. To check end to end: a run image
@@ -373,37 +387,27 @@ package index rather than the scanner. Wolfi package names have moved
 6. **Verify and portal.** `estate.yml` is prepared (verify v0.16.0, portal
    v0.1.0); it runs once both are released.
 
-## 10. Decisions needed
+## 10. Decisions
 
-Each has a recommended answer; [`bringup/README.md`](../bringup/README.md#1-decisions-plan-10-with-recommended-answers)
-maps them to the script's inputs.
+Decided on 2026-10-17; [`bringup/README.md`](../bringup/README.md#1-decisions)
+maps each to the script's inputs.
 
-1. **Org:** create `clearcutt-showcase`, or use another name?
-   *Recommended:* `clearcutt-showcase`, Free plan (created on the web; the
-   script checks it exists).
-2. **Repos:** create `platform`, `checkout`, `catalog`, `storefront`, and
-   `showcase` (all public) in it?
-   *Recommended:* yes, all public. `showcase` starts from this repository's
-   history.
-3. **Token:** one fine-grained PAT as an org secret scoped to those five repos,
-   or a repository secret in each? (The permissions are in §6.)
-   *Recommended:* neither: a **GitHub App** (factory F8, #36), installed on
-   all the org's repositories, with an org variable `CLEARCUTT_APP_ID` and an
-   org secret `CLEARCUTT_APP_PRIVATE_KEY`, both scoped to the five
-   repositories. Its tokens expire within the hour and belong to no person.
-   The PAT (`CLEARCUTT_BOT_TOKEN`, org secret) stays supported as the fallback.
-4. **Settings:** allow Actions to create and approve PRs (org-wide); Pages for
-   `showcase`. Branch protection and auto-merge can come later.
-   *Recommended:* yes to both now; branch protection (required `images`
-   checks) and auto-merge after the first green runs (`bringup.sh --protect`).
-5. **Drill staging:** see [demo-script.md](demo-script.md#act-6-cve-drill). The
-   "before" state is created by holding two packages at their last vulnerable
-   builds, clearly labelled as a drill.
-   *Recommended:* yes, as a platform pull request labelled **DRILL**
-   (`drill-github.sh stage`).
-6. **Releases:** cut clearcutt-factory v0.2.0 (#49, #50), clearcutt-verify
-   v0.16.0 (#68, #69, #71), and clearcutt-portal v0.1.0 (#3, #4, #8, #9)?
-   *Recommended:* yes, before bring-up, so every repository pins release
-   tags. Pinning commit SHAs instead works for a rehearsal (the trust
-   policy's identity then ends in `@<sha>`, and moving to tags later means
-   republishing).
+1. **Owner:** the personal account **`northcutted`**, not a new
+   organization.
+2. **Repos:** five public repositories with an unmistakable prefix:
+   `clearcutt-showcase-platform`, `-checkout`, `-catalog`, `-storefront`, and
+   `clearcutt-showcase` (this repository's history); images under
+   `ghcr.io/northcutted/clearcutt-showcase/`; the site at
+   `https://northcutted.github.io/clearcutt-showcase/`. Trust names each
+   repository exactly, since the account owns others.
+3. **Credentials:** a **GitHub App** (factory F8), installed on the five
+   repositories, with a `CLEARCUTT_APP_ID` variable and a
+   `CLEARCUTT_APP_PRIVATE_KEY` secret in each. A PAT stays the fallback.
+4. **Settings:** in each repository, Actions may create and approve pull
+   requests; Pages from GitHub Actions on the showcase. Branch protection and
+   auto-merge after the first green runs (`bringup.sh --protect`).
+5. **Drill staging:** a platform pull request labelled **DRILL**
+   (`drill-github.sh stage`), as in [demo-script.md](demo-script.md#act-6-cve-drill).
+6. **Releases:** clearcutt-factory v0.2.0 and clearcutt-portal v0.1.0 are
+   released; clearcutt-verify v0.16.0 is approved by the owner at its release
+   gate. Every repository pins release tags.
