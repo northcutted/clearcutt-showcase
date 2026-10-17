@@ -54,7 +54,7 @@ jobs:
           sparse-checkout: org
           persist-credentials: false
       # clearcutt-factory, for --reproduce (and QEMU for the other platform).
-      - uses: northcutted/clearcutt-factory@v0.2.0
+      - uses: northcutted/clearcutt-factory@v0.3.0
         with:
           tools: "false"
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
