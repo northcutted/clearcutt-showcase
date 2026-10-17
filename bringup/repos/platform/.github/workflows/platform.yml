@@ -35,9 +35,11 @@ jobs:
 
   # Signed as https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/stacks.yml@refs/heads/main,
   # the stack signer in org/trust.yaml. Unchanged stacks only move their tag.
+  # Also when a reproduce job failed (a flaky mirror, say): the stacks name
+  # images by tag, and a reproduction doesn't change what was published.
   stacks:
     needs: images
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() && needs.images.result != 'skipped' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/stacks.yml
     permissions: {contents: read, packages: write, id-token: write}
 
