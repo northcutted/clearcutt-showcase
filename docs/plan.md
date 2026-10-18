@@ -10,7 +10,7 @@ It is also the first real cross-repository consumer of
 [clearcutt-factory](https://github.com/northcutted/clearcutt-factory). Every gap
 it hits becomes a focused fix upstream or an issue on the tool that owns it.
 
-Status: **phases 1–3, 5, and 6 done; phase 4 waits for the GitHub App**.
+Status: **all six phases done**.
 The showcase is live under the personal account `northcutted`
 (`clearcutt-showcase-*`; site: https://northcutted.github.io/clearcutt-showcase/),
 and the CVE drill has run end to end ([results](../bringup/DRILL-RESULTS.md)).
@@ -365,8 +365,8 @@ package index rather than the scanner. Wolfi package names have moved
    ([`issues.md`](issues.md)): clearcutt-factory **v0.2.0** (F2–F16, F5 shared
    org profiles, and two found while preparing the bring-up: root manifests'
    bot branches, #51, and SLSA provenance on rebased images, #52) and
-   clearcutt-portal **v0.1.0** are released; clearcutt-verify **v0.16.0**
-   (V7–V12) is at its release approval.
+   clearcutt-portal **v0.1.0** are released, and so is clearcutt-verify
+   **v0.16.0** (V7–V12, 2026-10-17).
 3. **Bring-up. Done (2026-10-17).** `bringup.sh` created the five
    `clearcutt-showcase*` repositories under `northcutted` from
    [`bringup/`](../bringup/README.md) and pushed them over SSH
@@ -374,13 +374,20 @@ package index rather than the scanner. Wolfi package names have moved
    green; all nine images are verified and reproduced. The showcase's
    `estate.yml` pins clearcutt-verify v0.16.0 (released 2026-10-17; it ran
    from the same commit, `365c373`, built from source until then). The
-   GitHub App doesn't exist yet.
-4. **Coordination. Verified except the App token.** On 2026-10-17 the three events `notify` sends were posted by hand to the live repositories: `clearcutt.run-image-published` started checkout's fleet, `clearcutt.stack-published` its lock update, and `clearcutt.estate-changed` the showcase's estate and portal, all green. Then factory v0.3.0's `notify.yml` steps (what to announce, find dependents by topic, dispatch) were run as written with the owner's token in place of the App's: they found exactly the three app repositories and all three fleets ran green. Only minting the App token is left; it needs the App. `notify.yml` runs after each
-   platform publish, but its dispatches fail (403) without the App, and the
-   bot's pull requests get no CI until someone approves them or closes and
-   reopens them. In the drill the apps were woken with `workflow_dispatch`
-   instead, which showed the receiving side works: the platform publish was
-   followed by pin PRs in about 7 minutes.
+   GitHub App, `clearcutt-showcase-bot`, was created on 2026-10-18 with
+   `bringup.sh app-from-code` and installed on the five repositories.
+4. **Coordination. Done (2026-10-18).** On 2026-10-17 the three events
+   `notify` sends were posted by hand to the live repositories, and factory
+   v0.3.0's `notify.yml` steps were run with the owner's token in place of
+   the App's; every receiver ran green. On 2026-10-18, with the App
+   installed, the platform's own `notify` job (a rerun of the 2026-10-17
+   build-node publish) minted an App token, found exactly the three app
+   repositories by topic, and sent each `clearcutt.run-image-published`. All
+   three fleets ran green, and each fleet's `estate-changed` job used the App
+   to refresh the showcase's estate and portal. A lock update in checkout
+   pushed its bot PR (#4) with the App token, and CI ran on it by itself,
+   triggered by `clearcutt-showcase-bot[bot]`, and passed. Before the App,
+   the same PR's CI waited for approval.
 5. **Drill. Done (2026-10-17)**, with
    [`bringup/drill-github.sh`](../bringup/drill-github.sh) `stage` and
    `respond` ([results](../bringup/DRILL-RESULTS.md); timings in
