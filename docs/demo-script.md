@@ -11,7 +11,7 @@ rehearsal.
    binding, stack signer, vulnerability gate, and policy for the whole org.
 2. **`platform/images/run-python/image.yaml`** and its lock. The intent is ten
    lines; the lock pins every package by version and hash.
-3. **`platform/stacks/python.yaml`**, pushed as `ghcr.io/clearcutt-showcase/stacks/python:1`
+3. **`platform/stacks/python.yaml`**, pushed as `ghcr.io/northcutted/clearcutt-showcase/stacks/python:1`
    and signed by the platform workflow.
 4. **`catalog/app.yaml`.** An app is a stack reference, env, and a smoke test. It
    can't add OS packages.
@@ -28,15 +28,20 @@ toolchains, app teams own only their code.
 2. Merge it. On `main`, CI pushes, signs keylessly, attaches the SBOM,
    vulnerability, and recipe attestations, and adds SLSA provenance. A **second
    runner** then rebuilds from the signed recipe alone and the digests match.
-3. On the presenter's laptop (a third machine):
+3. On the presenter's laptop (a third machine), with the digest the run printed:
    ```sh
-   cosign verify ghcr.io/clearcutt-showcase/apps/storefront@sha256:… \
-     --certificate-identity-regexp '^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/images\.yml@' \
-     --certificate-github-workflow-repository clearcutt-showcase/storefront \
+   IMG=ghcr.io/northcutted/clearcutt-showcase/apps/storefront@sha256:…
+   cosign verify "$IMG" \
+     --certificate-identity-regexp '^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet)\.yml@' \
+     --certificate-github-workflow-repository northcutted/clearcutt-showcase-storefront \
      --certificate-oidc-issuer https://token.actions.githubusercontent.com
-   clearcutt-factory verify --image ghcr.io/clearcutt-showcase/apps/storefront@sha256:…
-   gh attestation verify oci://ghcr.io/clearcutt-showcase/apps/storefront@sha256:… --repo clearcutt-showcase/storefront
+   gh attestation verify "oci://$IMG" --repo northcutted/clearcutt-showcase-storefront \
+     --signer-repo northcutted/clearcutt-factory
+   # in a checkout of northcutted/clearcutt-showcase-storefront (its profile names the signers):
+   clearcutt-factory verify --image "$IMG"
    ```
+   `--signer-repo` is needed because the provenance is signed by factory's
+   reusable workflow, run in the storefront repository.
 
 **Proves:**
 - PRs are gated before merge.

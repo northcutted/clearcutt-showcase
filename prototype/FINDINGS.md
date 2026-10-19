@@ -17,7 +17,11 @@ grype 0.120.1 (DB built 2026-10-10), syft, crane.
 
 ## Summary
 
-| ID | Owner | Severity | Finding | Status |
+The status column is as phase 1 found it (2026-10-15). Since then every
+finding but W1 has been fixed and released; [`docs/issues.md`](../docs/issues.md)
+has the current status and the fixing pull requests.
+
+| ID | Owner | Severity | Finding | Status in phase 1 |
 |---|---|---|---|---|
 | F3 | factory | High | A refused rebase with `--update-lock` moves only the run image; rebuilding then uses the old build image | **Confirmed** on main; fix in PR #30 (open) |
 | F6 | factory | High | Rebuilding from the old lock moves `latest` back to an unpatched image (#15) | **Reproduced** on main; fix in PR #32 (open) |

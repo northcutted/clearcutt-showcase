@@ -3,9 +3,10 @@
 Everything needed to bring the showcase up on GitHub with one script. The
 decisions in [plan §10](../docs/plan.md#10-decisions) are made: a **personal
 account, `northcutted`**, with prefixed repositories, and a **GitHub App** for
-the automation. Nothing in this directory has been run against GitHub yet;
-it was prepared and checked locally and with read-only (GET) calls (see
-[Checked so far](#checked-so-far)).
+the automation. It has run: the showcase came up on 2026-10-17, the CVE drill
+ran on GitHub the same day ([results](DRILL-RESULTS.md)), and the App has
+done the cross-repository automation since 2026-10-18. [Checked so far](#checked-so-far)
+records what was checked before the first run.
 
 | Path | What it is |
 |---|---|
@@ -24,7 +25,7 @@ it was prepared and checked locally and with read-only (GET) calls (see
 | 3 | Credentials | A **GitHub App**: a `CLEARCUTT_APP_ID` variable and a `CLEARCUTT_APP_PRIVATE_KEY` secret in each of the five repositories (a personal account has no organization secrets). Its tokens expire within the hour and belong to no person. `--token pat` (`CLEARCUTT_BOT_TOKEN`) remains as a fallback | `--app-id`, `--app-key-file` |
 | 4 | Settings | Each repository: Actions may create and approve pull requests; Pages from GitHub Actions on the showcase. Branch protection and auto-merge later | `--protect` when wanted |
 | 5 | Drill staging | A platform PR labelled **DRILL** holds OpenSSL 3 at 3.6.3-r4 and libxml2 at 2.13.6-r3 ([demo-script Act 6](../docs/demo-script.md#act-6-cve-drill)) | `drill-github.sh stage` |
-| 6 | Tool versions | clearcutt-factory **v0.3.0** and clearcutt-portal **v0.1.0** (released); clearcutt-verify **v0.16.0** (at its release gate) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
+| 6 | Tool versions | clearcutt-factory **v0.3.0**, clearcutt-verify **v0.16.0**, and clearcutt-portal **v0.1.0** (all released) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
 | 7 | What the showcase repository starts from | This repository's history (plan §1), plus one commit adding [`repos/showcase/`](repos/showcase/) | `--showcase-ref` (default `HEAD`) |
 
 ### Names in a personal account
@@ -346,7 +347,8 @@ installs the release tagged there; with no such release pass
 
 ## Checked so far
 
-Locally and with GET-only calls (2026-10-17), with clearcutt-factory built
+Before the first run (kept as a record; everything below "Not checkable
+before bring-up" has since run on GitHub). Locally and with GET-only calls (2026-10-17), with clearcutt-factory built
 from the **v0.2.0** tag and clearcutt-verify from **main `365c373`** (v0.16.0
 to be):
 

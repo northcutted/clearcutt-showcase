@@ -2,12 +2,14 @@
 
 Plan IDs are the ones in [plan.md §8](plan.md#8-what-each-tool-must-provide).
 Phase 1 (the local prototype) found F9–F16, V8–V12, and P7; evidence and repro
-steps are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md). Statuses are
-as of 2026-10-16. "PR" means opened, not yet merged.
+steps are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md).
 
-**Update 2026-10-17:** every pull request below is merged. clearcutt-factory
-v0.2.0 and clearcutt-portal v0.1.0 are released; clearcutt-verify v0.16.0 is
-at its release approval.
+This is the showcase's only status table. **As of 2026-10-18 every pull
+request below is merged and released** (clearcutt-factory v0.1.1–v0.3.0,
+clearcutt-verify v0.15.0–v0.16.0, clearcutt-portal v0.1.0); a PR link in a
+row is the fix. W1 (upstream) is the one finding still open. The work that
+followed the second assessment is in [`assessment.md`](assessment.md) and
+[below](#from-the-second-assessment-2026-10-18).
 
 ## clearcutt-factory
 
@@ -51,7 +53,7 @@ at its release approval.
 | Plan | Issue | Status |
 |---|---|---|
 | P1 | Build from a report bundle plus history | Done |
-| P2 | GitHub Pages action | Done; usable by other repositories once v0.1.0 is released |
+| P2 | GitHub Pages action | Done (v0.1.0) |
 | P3 | [#5](https://github.com/northcutted/clearcutt-portal/issues/5): copy-paste verify commands | [PR #8](https://github.com/northcutted/clearcutt-portal/pull/8), [PR #9](https://github.com/northcutted/clearcutt-portal/pull/9) |
 | P4 | Base graph | Done |
 | P5 | [#6](https://github.com/northcutted/clearcutt-portal/issues/6): package search by version range | [PR #8](https://github.com/northcutted/clearcutt-portal/pull/8) |
@@ -81,3 +83,15 @@ Details in [`bringup/DRILL-RESULTS.md`](../bringup/DRILL-RESULTS.md).
 W1 (grype matches nothing for Wolfi's `openssl-4.0-*` packages or for libxml2
 2.13.x) belongs to Wolfi's advisories and grype's matching. The drill works
 around it (see FINDINGS.md).
+
+## From the second assessment (2026-10-18)
+
+The plan is [`assessment.md` §4](assessment.md#4-the-plan). Phases A–D are
+being worked as one pull request per repository and phase:
+
+| Phase | Repository | Pull request | Status |
+|---|---|---|---|
+| A | clearcutt-verify | — | In progress |
+| A | clearcutt-factory | — | In progress |
+| A | showcase | this repository | Done: trust policy from the signed profile (#7); status tables retired; demo commands fixed |
+| D | clearcutt-portal | — | In progress |

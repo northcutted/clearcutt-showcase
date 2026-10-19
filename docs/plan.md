@@ -287,26 +287,30 @@ Issues are filed on the owning repositories; links are in [`issues.md`](issues.m
 Phase 1 added F9–F16, V8–V12, and P7; the evidence, repro steps, and
 severities are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md).
 
+What the showcase needed from each tool when it started. Every item was
+filed and is fixed and released; [`issues.md`](issues.md) is the one status
+table, with the fixing pull requests.
+
 **clearcutt-factory.** I may open focused PRs here.
 
-| # | Gap | Kind | Status |
-|---|---|---|---|
-| F1 [#11](https://github.com/northcutted/clearcutt-factory/issues/11) | Reusable-workflow signatures carry factory's SAN. `init`'s identity never matches, which breaks `verify --image` (reproduce, fleet) and makes `publish` republish unchanged images. Needs the caller-repository binding (`githubWorkflowRepository`) and a correct `init` template. | bug | Fixed in v0.1.1. |
-| F2 [#12](https://github.com/northcutted/clearcutt-factory/issues/12) | `requireSignedStacks` verifies stacks with the image identity. Stacks are published from another repository, so they need their own signer (`signing.stacks`). | gap | Fixed in v0.1.1; phase 1 exercised `signing.stacks` with a separate stack key. |
-| F3 | When a rebase is refused, `--update-lock` moves only the run image. The rebuild then uses the old build image and can link against libraries the new run image lacks (the drill's case). The rebuild PR should re-resolve the stack's build image too. | gap | **Confirmed in phase 1** (the rebuild links `libxml2.so.2` onto a run image without it). Fix: [PR #30](https://github.com/northcutted/clearcutt-factory/pull/30) (open). |
-| F4 [#13](https://github.com/northcutted/clearcutt-factory/issues/13) | Cross-repository fleet: callers can't tell what `images.yml` published (no outputs), and nothing notifies dependents. | feature | Prototype in the showcase, then propose. |
-| F5 [#14](https://github.com/northcutted/clearcutt-factory/issues/14) | One org profile shared across repositories (publish and reference it, signed, like stacks), so app repos can't drift from or weaken it. | feature | Implemented in [PR #50](https://github.com/northcutted/clearcutt-factory/pull/50) (open, stacked on #49): `profile push`, then `extends: {ref, signer}` in each app repo's `factory.org.yaml`, pinned per lock, verified on every load, tighten-only. |
-| F6 [#15](https://github.com/northcutted/clearcutt-factory/issues/15) | Until the pin PR merges, any push to an app's `main` rebuilds from the old lock. `publish` finds that digest "already published" and **moves `latest` back to the unpatched image**. | hazard | **Reproduced in phase 1** (`drill.sh f6`). Fix: [PR #32](https://github.com/northcutted/clearcutt-factory/pull/32) (open). |
-| F7 [#16](https://github.com/northcutted/clearcutt-factory/issues/16) | The second-runner reproduction is only a CI job result. Attest it, so verifiers and the portal can show "independently reproduced". | feature | Issue. |
-| F8 [#17](https://github.com/northcutted/clearcutt-factory/issues/17) | Reusable workflows only take a static `CLEARCUTT_BOT_TOKEN`. Support GitHub App credentials (`app-id` and private key) for short-lived tokens. | feature | Issue. |
-| F9 | `requireNonRoot` applies to stack build images, but the app build stage runs the steps as that user and starts with `mkdir -p /out` in `/`; source and cache mounts are root-owned. A non-root build image breaks every app build. Run the build stage as root (it never ships). | bug | High. Phase 1 works around it. To file. |
-| F10 | A rebased image never equals the rebuild of its pinned lock: the rebase keeps the base's layer-descriptor annotations (`buildkit/rewritten-timestamp`); a build drops them. Every pin PR then republishes identical content under a new digest. | bug | Medium. To file. |
-| F11 | The containerized BuildKit can't be given a `buildkitd.toml` or network, so it can't pull from a local or plain-HTTP registry. | gap | Medium (local and private registries). To file. |
-| F12 | Key mode has one signing key per profile; `stack push` can't sign as the stack signer. | gap | Low. |
-| F13 | Trust-policy `key:` paths resolve against the working directory, not the policy file (with V9). | bug | Low. |
-| F14 | factory's own `app.lock.yaml` and `app.Containerfile` are in the app's build context by default, so a pin PR changes the context. | gap | Low. |
-| F15 | The documented `--tlog-upload=false` is deprecated in cosign 3 (use a signing config). | docs | Low. |
-| F16 | `stack push` re-pushes and re-signs an unchanged stack; signatures pile up. | gap | Low. |
+| # | Gap | Kind |
+|---|---|---|
+| F1 [#11](https://github.com/northcutted/clearcutt-factory/issues/11) | Reusable-workflow signatures carry factory's SAN. `init`'s identity never matches, which breaks `verify --image` (reproduce, fleet) and makes `publish` republish unchanged images. Needs the caller-repository binding (`githubWorkflowRepository`) and a correct `init` template. | bug |
+| F2 [#12](https://github.com/northcutted/clearcutt-factory/issues/12) | `requireSignedStacks` verifies stacks with the image identity. Stacks are published from another repository, so they need their own signer (`signing.stacks`). | gap |
+| F3 | When a rebase is refused, `--update-lock` moves only the run image. The rebuild then uses the old build image and can link against libraries the new run image lacks (the drill's case). The rebuild PR should re-resolve the stack's build image too. | gap |
+| F4 [#13](https://github.com/northcutted/clearcutt-factory/issues/13) | Cross-repository fleet: callers can't tell what `images.yml` published (no outputs), and nothing notifies dependents. | feature |
+| F5 [#14](https://github.com/northcutted/clearcutt-factory/issues/14) | One org profile shared across repositories (publish and reference it, signed, like stacks), so app repos can't drift from or weaken it. | feature |
+| F6 [#15](https://github.com/northcutted/clearcutt-factory/issues/15) | Until the pin PR merges, any push to an app's `main` rebuilds from the old lock. `publish` finds that digest "already published" and **moves `latest` back to the unpatched image**. | hazard |
+| F7 [#16](https://github.com/northcutted/clearcutt-factory/issues/16) | The second-runner reproduction is only a CI job result. Attest it, so verifiers and the portal can show "independently reproduced". | feature |
+| F8 [#17](https://github.com/northcutted/clearcutt-factory/issues/17) | Reusable workflows only take a static `CLEARCUTT_BOT_TOKEN`. Support GitHub App credentials (`app-id` and private key) for short-lived tokens. | feature |
+| F9 | `requireNonRoot` applies to stack build images, but the app build stage runs the steps as that user and starts with `mkdir -p /out` in `/`; source and cache mounts are root-owned. A non-root build image breaks every app build. Run the build stage as root (it never ships). | bug |
+| F10 | A rebased image never equals the rebuild of its pinned lock: the rebase keeps the base's layer-descriptor annotations (`buildkit/rewritten-timestamp`); a build drops them. Every pin PR then republishes identical content under a new digest. | bug |
+| F11 | The containerized BuildKit can't be given a `buildkitd.toml` or network, so it can't pull from a local or plain-HTTP registry. | gap |
+| F12 | Key mode has one signing key per profile; `stack push` can't sign as the stack signer. | gap |
+| F13 | Trust-policy `key:` paths resolve against the working directory, not the policy file (with V9). | bug |
+| F14 | factory's own `app.lock.yaml` and `app.Containerfile` are in the app's build context by default, so a pin PR changes the context. | gap |
+| F15 | The documented `--tlog-upload=false` is deprecated in cosign 3 (use a signing config). | docs |
+| F16 | `stack push` re-pushes and re-signs an unchanged stack; signatures pile up. | gap |
 
 **clearcutt-verify** (issues [#48–#52](https://github.com/northcutted/clearcutt-verify/issues); mapping in issues.md):
 
@@ -325,7 +329,7 @@ severities are in [`prototype/FINDINGS.md`](../prototype/FINDINGS.md).
 | V11 | Rebased apps lose `stackRef`/`stackDigest`, so `stacks` is null and stack signatures go unchecked once the fleet has rebased. |
 | V12 | `--reproduce` ignores key signers (code reading; unconfirmed). |
 
-**clearcutt-portal** ([northcutted/clearcutt-portal](https://github.com/northcutted/clearcutt-portal)). Not filed yet.
+**clearcutt-portal** ([northcutted/clearcutt-portal](https://github.com/northcutted/clearcutt-portal)).
 - P1: build from a report bundle plus history.
 - P2: a GitHub Pages action.
 - P3: per-image evidence pages with copy-paste verify commands.
