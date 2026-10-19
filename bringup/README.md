@@ -75,11 +75,20 @@ clearcutt-portal v0.1.0 are published (verify v0.16.0 was released on
   runs before pushing (factory's [adopting guide](https://github.com/northcutted/clearcutt-factory/blob/v0.3.0/docs/adopting.md#1-install)
   shows how to install the release and check its signature).
 
-### The GitHub App (personal account)
+### The GitHub App
 
-**The quick way (two clicks).** Open [`create-app.html`](create-app.html) in a
-browser and press **Create**, then **Create GitHub App** on GitHub. GitHub
-redirects to the showcase portal with `?code=…` in the address bar. Then:
+**The quick way (two clicks).** [`create-app.html`](create-app.html) is the
+form for `northcutted`; for another owner, write one with
+
+```sh
+bringup/bringup.sh app-form --owner OWNER --owner-type user|org   # writes .work/OWNER/create-app.html
+```
+
+(an organization's App is created under the organization, so you need to be
+one of its owners; `--app-name` overrides the name, at most 34 characters).
+Open the form in a browser and press **Create**, then **Create GitHub App** on
+GitHub. GitHub redirects to the showcase portal with `?code=…` in the address
+bar. Then:
 
 ```sh
 bringup/bringup.sh app-from-code --owner northcutted --owner-type user --code CODE --apply
@@ -89,7 +98,8 @@ This exchanges the code (single use, valid for an hour) for the App's Client
 ID and private key, which it keeps in `~/.config/clearcutt-showcase/` (mode
 0600, never printed), and sets the credentials on the five repositories. It
 prints the link to **install** the App: choose *Only select repositories* and
-pick the five. The manual way follows.
+pick the five. The manual way follows (for an organization, start from
+**Organization settings → Developer settings → GitHub Apps** instead).
 
 
 Create it after the repositories exist (step 3 below), so it can be installed
@@ -372,6 +382,14 @@ to be):
   `workflow` (exit 5). The `credentials` subcommand's dry run never prints the
   App ID or key. `drill-github.sh` rehearsed against a local copy of the
   platform (`--platform-clone`), and `status` read-only.
+
+Organization path, rehearsed 2026-10-18 (not run: GitHub's API can't create
+an organization): `bringup.sh up --org clearcutt-demo --offline` renders all
+58 files with unprefixed names and `ghcr.io/clearcutt-demo/`, plans the
+organization-level workflow permissions and per-repository settings, and
+`actionlint` is clean on every rendered workflow; `bringup.sh app-form --org
+clearcutt-demo` writes the organization's App form
+(`github.com/organizations/clearcutt-demo/settings/apps/new`).
 
 Not checkable before bring-up: keyless signing and caller binding in real
 runs, notify and dispatch across repositories, GHCR package visibility, the

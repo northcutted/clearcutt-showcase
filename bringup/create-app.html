@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <title>Create the ClearCutt showcase GitHub App</title>
 <h1>Create the ClearCutt showcase GitHub App</h1>
-<p>This form creates a private GitHub App on <b>your account</b> through GitHub's
+<p>This form creates a private GitHub App, <code>clearcutt-showcase-bot</code>, on your account (<b>northcutted</b>) through GitHub's
 <a href="https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest">App manifest flow</a>,
 with only these repository permissions: Contents read and write, Pull requests read and write, Metadata read; webhook off.</p>
 <ol>
@@ -10,9 +10,9 @@ with only these repository permissions: Contents read and write, Pull requests r
 <li>GitHub redirects to the showcase portal with <code>?code=…</code> in the address bar. Copy that code (it is valid for one hour) and run
 <pre>bringup/bringup.sh app-from-code --owner northcutted --owner-type user --code CODE --apply</pre>
 which exchanges it for the App's ID and private key and sets the credentials on the five repositories.</li>
-<li>Install the App on the five <code>clearcutt-showcase*</code> repositories (the script prints the link).</li>
+<li>Install the App on the five showcase repositories (the script prints the link).</li>
 </ol>
 <form action="https://github.com/settings/apps/new?state=clearcutt-showcase" method="post">
-<input type="hidden" name="manifest" value="{&quot;name&quot;: &quot;clearcutt-showcase-bot&quot;, &quot;url&quot;: &quot;https://github.com/northcutted/clearcutt-showcase&quot;, &quot;description&quot;: &quot;Opens the ClearCutt showcase&#x27;s lock-update and pin pull requests and sends repository_dispatch between its repositories.&quot;, &quot;redirect_url&quot;: &quot;https://northcutted.github.io/clearcutt-showcase/&quot;, &quot;public&quot;: false, &quot;hook_attributes&quot;: {&quot;url&quot;: &quot;https://example.invalid/unused&quot;, &quot;active&quot;: false}, &quot;default_permissions&quot;: {&quot;contents&quot;: &quot;write&quot;, &quot;pull_requests&quot;: &quot;write&quot;, &quot;metadata&quot;: &quot;read&quot;}, &quot;default_events&quot;: []}">
+<input type="hidden" name="manifest" value="{&quot;name&quot;:&quot;clearcutt-showcase-bot&quot;,&quot;url&quot;:&quot;https://github.com/northcutted/clearcutt-showcase&quot;,&quot;description&quot;:&quot;Opens the ClearCutt showcase&#x27;s lock-update and pin pull requests and sends repository_dispatch between its repositories.&quot;,&quot;redirect_url&quot;:&quot;https://northcutted.github.io/clearcutt-showcase/&quot;,&quot;public&quot;:false,&quot;hook_attributes&quot;:{&quot;url&quot;:&quot;https://example.invalid/unused&quot;,&quot;active&quot;:false},&quot;default_permissions&quot;:{&quot;contents&quot;:&quot;write&quot;,&quot;pull_requests&quot;:&quot;write&quot;,&quot;metadata&quot;:&quot;read&quot;},&quot;default_events&quot;:[]}">
 <button type="submit">Create</button>
 </form>

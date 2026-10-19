@@ -12,6 +12,8 @@
 #                --skip-credentials), then push platform, the apps (after the
 #                platform's first publish), and the showcase; Pages
 #   credentials  only the credentials, e.g. once the GitHub App exists
+#   app-form     write the App-manifest form (create-app.html) for this owner,
+#                personal account or organization (--app-name, --out FILE)
 #   app-from-code  --code CODE: exchange the code GitHub returns after
 #                bringup/create-app.html creates the App, keep its private key in
 #                ~/.config/clearcutt-showcase/, and set the credentials
@@ -77,12 +79,14 @@ cmd=up owner='' owner_type=org prefix='' prefix_set=false token=app secrets_at='
 app_id=${CLEARCUTT_APP_ID:-} app_key_file=${CLEARCUTT_APP_PRIVATE_KEY_FILE:-}
 factory_ref=v0.3.0 verify_ref=v0.16.0 verify_version='' portal_ref=v0.1.0
 showcase_ref=HEAD steps='' protect=false wait_publish=false reset_secrets=false
-skip_credentials=false work='' git_protocol=https app_code=''
+skip_credentials=false work='' git_protocol=https app_code='' app_name='' out_file=''
 
 usage() { sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while (($#)); do
   case $1 in
-    up | credentials | app-from-code) cmd=$1 ;;
+    up | credentials | app-from-code | app-form) cmd=$1 ;;
+    --app-name) app_name=${2:?}; shift ;;
+    --out) out_file=${2:?}; shift ;;
     --owner) owner=${2:?}; shift ;;
     --owner-type) owner_type=${2:?}; shift ;;
     --org) owner=${2:?} owner_type=org; shift ;;
@@ -143,6 +147,57 @@ work=${work:-$here/.work/$owner}
 repos=() app_repos=()
 for r in "${roles[@]}"; do repos+=("$(repo_of "$r")"); done
 for r in "${app_roles[@]}"; do app_repos+=("$(repo_of "$r")"); done
+
+# app-form: write the App-manifest form (create-app.html) for this owner. A
+# personal account creates Apps at github.com/settings/apps/new, an
+# organization at github.com/organizations/OWNER/settings/apps/new; the
+# manifest is the same: Contents and Pull requests read and write, Metadata
+# read, no webhook, no events. Needs no GitHub access.
+if [[ $cmd == app-form ]]; then
+  if [[ -z $app_name ]]; then
+    if [[ $owner_type == user ]]; then app_name=$SHOWCASE-bot; else app_name=$owner-clearcutt-showcase-bot; fi
+  fi
+  ((${#app_name} <= 34)) || die "--app-name $app_name: GitHub App names are at most 34 characters" 2
+  if [[ $owner_type == user ]]; then
+    action=https://github.com/settings/apps/new
+    where="your account (<b>$owner</b>)"
+  else
+    action=https://github.com/organizations/$owner/settings/apps/new
+    where="the organization <b>$owner</b> (you need to be an owner of it)"
+  fi
+  manifest=$(jq -cn --arg name "$app_name" --arg url "https://github.com/$owner/$SHOWCASE" --arg redirect "$PAGES_URL" '{
+    name: $name, url: $url,
+    description: "Opens the ClearCutt showcase'"'"'s lock-update and pin pull requests and sends repository_dispatch between its repositories.",
+    redirect_url: $redirect, public: false,
+    hook_attributes: {url: "https://example.invalid/unused", active: false},
+    default_permissions: {contents: "write", pull_requests: "write", metadata: "read"},
+    default_events: []}')
+  html_escape() { sed -e 's/&/\&amp;/g' -e 's/"/\&quot;/g' -e "s/'/\&#x27;/g" -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
+  out_file=${out_file:-$work/create-app.html}
+  mkdir -p "$(dirname "$out_file")"
+  cat > "$out_file" <<HTML
+<!doctype html>
+<meta charset="utf-8">
+<title>Create the ClearCutt showcase GitHub App</title>
+<h1>Create the ClearCutt showcase GitHub App</h1>
+<p>This form creates a private GitHub App, <code>$app_name</code>, on $where through GitHub's
+<a href="https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest">App manifest flow</a>,
+with only these repository permissions: Contents read and write, Pull requests read and write, Metadata read; webhook off.</p>
+<ol>
+<li>Click <b>Create</b> below, then <b>Create GitHub App</b> on GitHub.</li>
+<li>GitHub redirects to the showcase portal with <code>?code=…</code> in the address bar. Copy that code (it is valid for one hour) and run
+<pre>bringup/bringup.sh app-from-code --owner $owner --owner-type $owner_type --code CODE --apply</pre>
+which exchanges it for the App's ID and private key and sets the credentials on the five repositories.</li>
+<li>Install the App on the five showcase repositories (the script prints the link).</li>
+</ol>
+<form action="$action?state=clearcutt-showcase" method="post">
+<input type="hidden" name="manifest" value="$(html_escape <<<"$manifest")">
+<button type="submit">Create</button>
+</form>
+HTML
+  ok "wrote $out_file: open it in a browser (App $app_name on $owner_type $owner)"
+  exit 0
+fi
 
 tag_re='^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'
 sha_re='^[0-9a-f]{40}$'
