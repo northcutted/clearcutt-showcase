@@ -53,10 +53,12 @@ jobs:
         with:
           tools: "false"
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-      # Installs cosign and a signature-verified clearcutt-verify release.
+      # Installs cosign and a signature-verified clearcutt-verify release:
+      # with version empty, the release this action is pinned to, so a
+      # Dependabot bump of the pin moves both.
       - uses: northcutted/clearcutt-verify@<VERIFY_REF>
         with:
-          version: <VERIFY_VERSION>
+          version: "<VERIFY_VERSION>"
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io

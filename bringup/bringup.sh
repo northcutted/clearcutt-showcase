@@ -157,7 +157,9 @@ else
   factory_signer_ref='[0-9a-f]{40}'
 fi
 if [[ -z $verify_version ]]; then
-  if [[ $verify_ref =~ $tag_re ]]; then verify_version=$verify_ref; else verify_version=source; fi
+  # A release tag: leave the action's version input empty, so it installs
+  # the release it is pinned to and a Dependabot bump of the pin moves both.
+  if [[ $verify_ref =~ $tag_re ]]; then verify_version=; else verify_version=source; fi
 fi
 
 # Exit codes 5 and 6 end an apply at once; a dry run reports them at the end.
@@ -174,7 +176,7 @@ mode="dry run (reads GitHub, changes nothing; --apply to change)"
 printf '%sClearCutt showcase bring-up%s: %s for %s %s, %s\n' "$_b" "$_n" "$cmd" "$owner_type" "$owner" "$mode"
 note "repositories: $(printf "$owner/%s " "${repos[@]}")"
 note "images: $REGISTRY/…; Pages: $PAGES_URL"
-note "factory $factory_ref, verify $verify_ref (installs $verify_version), portal $portal_ref"
+note "factory $factory_ref, verify $verify_ref (installs ${verify_version:-that release}), portal $portal_ref"
 note "credentials: $token, per $secrets_at$([[ $skip_credentials == true ]] && echo ' (skipped: run the credentials subcommand later)')"
 note "work directory: $work"
 
@@ -364,15 +366,22 @@ fi
 
 # ---------------------------------------------------------------------------
 if step settings; then
-  say "Settings: Actions may create and approve pull requests; topics; branch cleanup"
+  # The bot's pull requests come from the App (or CLEARCUTT_BOT_TOKEN), so
+  # the workflow token needs no right to create or approve them; with it off,
+  # a missing credential fails loudly instead of falling back.
+  say "Settings: read-only workflow token; Dependabot alerts and security updates; topics; branch cleanup"
   if [[ $owner_type == org ]]; then
     act gh api --method PUT "orgs/$owner/actions/permissions/workflow" \
-      -f default_workflow_permissions=read -F can_approve_pull_request_reviews=true
+      -f default_workflow_permissions=read -F can_approve_pull_request_reviews=false
   fi
   for i in "${!roles[@]}"; do
     r=${repos[i]}
     act gh api --method PUT "repos/$owner/$r/actions/permissions/workflow" \
-      -f default_workflow_permissions=read -F can_approve_pull_request_reviews=true
+      -f default_workflow_permissions=read -F can_approve_pull_request_reviews=false
+    # A CVE in an app's own dependencies is Dependabot's (factory locks the
+    # OS and toolchains): alerts, and a fix PR without waiting for the schedule.
+    act gh api --method PUT "repos/$owner/$r/vulnerability-alerts"
+    act gh api --method PUT "repos/$owner/$r/automated-security-fixes"
     topics=(--add-topic clearcutt-showcase)
     case ${roles[i]} in
       checkout | catalog | storefront) topics+=(--add-topic clearcutt-app) ;;

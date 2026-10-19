@@ -1,0 +1,16 @@
+# Dependabot: the actions and ClearCutt reusable workflows this repository
+# pins. (Image inputs are factory's: update-locks.yml re-resolves them.)
+# The ClearCutt pins (clearcutt-factory, -verify, -portal) are grouped so
+# they move together; the trust policy accepts any factory release tag, so
+# a factory bump keeps images verifiable.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      clearcutt:
+        patterns: ["northcutted/clearcutt-*"]
+      actions:
+        patterns: ["*"]

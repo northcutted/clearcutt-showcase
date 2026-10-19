@@ -424,8 +424,9 @@ maps each to the script's inputs.
 3. **Credentials:** a **GitHub App** (factory F8), installed on the five
    repositories, with a `CLEARCUTT_APP_ID` variable and a
    `CLEARCUTT_APP_PRIVATE_KEY` secret in each. A PAT stays the fallback.
-4. **Settings:** in each repository, Actions may create and approve pull
-   requests; Pages from GitHub Actions on the showcase. Branch protection and
+4. **Settings:** in each repository, a read-only workflow token (since
+   2026-10-18 it may not create or approve pull requests: the App opens them),
+   Dependabot alerts and security updates; Pages from GitHub Actions on the showcase. Branch protection and
    auto-merge after the first green runs (`bringup.sh --protect`).
 5. **Drill staging:** a platform pull request labelled **DRILL**
    (`drill-github.sh stage`), as in [demo-script.md](demo-script.md#act-6-cve-drill).

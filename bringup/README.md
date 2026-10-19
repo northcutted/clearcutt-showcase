@@ -23,7 +23,7 @@ records what was checked before the first run.
 | 1 | Owner | The personal account **`northcutted`** (not a new organization) | `--owner northcutted --owner-type user` |
 | 2 | Repositories | Five public repositories with an unmistakable prefix (below) | `--prefix` (default `clearcutt-showcase-` for a personal account) |
 | 3 | Credentials | A **GitHub App**: a `CLEARCUTT_APP_ID` variable and a `CLEARCUTT_APP_PRIVATE_KEY` secret in each of the five repositories (a personal account has no organization secrets). Its tokens expire within the hour and belong to no person. `--token pat` (`CLEARCUTT_BOT_TOKEN`) remains as a fallback | `--app-id`, `--app-key-file` |
-| 4 | Settings | Each repository: Actions may create and approve pull requests; Pages from GitHub Actions on the showcase. Branch protection and auto-merge later | `--protect` when wanted |
+| 4 | Settings | Each repository: a read-only workflow token that may not create or approve pull requests (the App opens them); Dependabot alerts and security updates; Pages from GitHub Actions on the showcase. Branch protection and auto-merge later | `--protect` when wanted |
 | 5 | Drill staging | A platform PR labelled **DRILL** holds OpenSSL 3 at 3.6.3-r4 and libxml2 at 2.13.6-r3 ([demo-script Act 6](../docs/demo-script.md#act-6-cve-drill)) | `drill-github.sh stage` |
 | 6 | Tool versions | clearcutt-factory **v0.3.0**, clearcutt-verify **v0.16.0**, and clearcutt-portal **v0.1.0** (all released) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
 | 7 | What the showcase repository starts from | This repository's history (plan §1), plus one commit adding [`repos/showcase/`](repos/showcase/) | `--showcase-ref` (default `HEAD`) |
@@ -163,7 +163,7 @@ leaves out the credentials, and `credentials` sets them later. Without
 | names | Each of the five names is free or already the showcase's; no other repository carries `clearcutt-app` (exit 6) |
 | (render) | Copies `repos/*` to `.work/OWNER/render/`, filling the placeholders; fails if any is left |
 | `repos` | `gh repo create` the five, public, with descriptions that mark them as the showcase's |
-| `settings` | Each repository: Actions workflow permissions (read, **may create and approve pull requests**), delete merged branches, topic `clearcutt-showcase` (and `clearcutt-app` on the apps), the showcase's homepage |
+| `settings` | Each repository: Actions workflow permissions (read; **may not** create or approve pull requests: the App does), Dependabot alerts and security updates, delete merged branches, topic `clearcutt-showcase` (and `clearcutt-app` on the apps), the showcase's homepage |
 | `credentials` | `CLEARCUTT_APP_ID` (variable; updated if different) and `CLEARCUTT_APP_PRIVATE_KEY` (secret; kept if set unless `--reset-secrets`) in each repository |
 | `platform` | Locks the six platform images, commits, pushes `main` |
 | `apps` | Waits (`--wait`, up to 90 minutes) or stops (exit 4) until the shared profile and the three stacks are published and public, then locks each app (verifying the profile and stack signatures), commits, pushes |
