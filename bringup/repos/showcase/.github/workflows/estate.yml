@@ -7,7 +7,8 @@
 #      run extends its history (--allow-missing: only "nothing there yet", the
 #      first run, may pass).
 #   2. estate verify over estate/refs.txt against estate/policy.yaml and the
-#      platform's trust policy; --reproduce rebuilds any factory image that
+#      platform's trust policy, read from the signed shared profile;
+#      --reproduce rebuilds any factory image that
 #      has no verified reproduction attestation.
 #   3. Push the new bundle back and sign it, also when the gate fails (that
 #      is the run to look at); upload it for the portal.
@@ -45,13 +46,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # The trust policy is the platform's (org/trust.yaml), so the estate
-      # trusts exactly whom factory trusts. estate/policy.yaml names it.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: <OWNER>/<PREFIX>platform
-          path: estate/.platform
-          sparse-checkout: org
           persist-credentials: false
       # clearcutt-factory, for --reproduce (and QEMU for the other platform).
       - uses: northcutted/clearcutt-factory@<FACTORY_REF>
@@ -67,6 +62,27 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: oras-project/setup-oras@005458ad77f1c8facd38a094e4af2e69e5607ff4 # v2.0.2
+
+      # The trust policy is the platform's (org/trust.yaml), read from the
+      # signed shared profile factory builds with (<REGISTRY>/factory/org:1),
+      # not from a checkout: the estate trusts exactly whom factory trusts,
+      # in the same signed copy. The profile's signer is the platform's
+      # profile.yml on main, as every app's extends.signer says; an unsigned
+      # or otherwise signed profile stops the run here.
+      - name: Fetch the trust policy from the signed shared profile
+        env:
+          PROFILE: <REGISTRY>/factory/org:1
+          PROFILE_SIGNER: https://github.com/<OWNER>/<PREFIX>platform/.github/workflows/profile.yml@refs/heads/main
+        run: |
+          set -euo pipefail
+          digest=$(oras resolve "$PROFILE")
+          cosign verify --certificate-identity "$PROFILE_SIGNER" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            "${PROFILE%:*}@$digest" >/dev/null
+          oras pull "${PROFILE%:*}@$digest" --output estate/.profile
+          test -s estate/.profile/trust-policy.yaml
+          echo "trust policy from ${PROFILE%:*}@$digest"
 
       - name: Pull the last report bundle
         run: clearcutt-verify estate pull "$ESTATE" --output dist/estate --allow-missing
