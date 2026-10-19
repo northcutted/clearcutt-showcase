@@ -7,9 +7,11 @@ kind: VerificationPolicy
 # fleet's steady state (rebased apps) meets it. A rebased image's recipe is
 # not-applicable: its verified rebase record leads to the original's.
 required: [signature, sbom, vulnerabilityScan, provenance, recipe]
-# The platform's trust policy, the same file factory builds and rebases with:
-# estate.yml checks out northcutted/clearcutt-showcase-platform's org/ into estate/.platform.
-trustPolicy: .platform/org/trust.yaml
+# The platform's trust policy, the same signed copy factory builds and
+# rebases with: estate.yml pulls the shared profile ghcr.io/northcutted/clearcutt-showcase/factory/org:1,
+# checks it is signed by the platform's profile.yml on main, and unpacks it
+# into estate/.profile.
+trustPolicy: .profile/trust-policy.yaml
 failOn: critical
 onlyFixed: true
 maxDaysBehind: 7
