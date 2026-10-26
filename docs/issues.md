@@ -103,8 +103,25 @@ being worked as one pull request per repository and phase:
 ## Seen live while Phases A–D were in progress (2026-10-26)
 
 Three of the assessment's claims happened on the live showcase by themselves,
-a week after Phase A started. Recorded here as evidence; timings close when
-the loop does.
+a week after Phase A started. Recorded here as evidence.
+
+**How the loop closed (2026-10-26, UTC).** The six pin pull requests could not
+be green one at a time (each PR builds all six images, five of them still on
+the vulnerable brotli), so they were combined into one
+([platform #15](https://github.com/northcutted/clearcutt-showcase-platform/pull/15)).
+Merged **02:27**. The platform rebuilt all six images, signed, attested,
+reproduced on a second runner, published stacks and the profile, and notified
+the apps: done **02:38**. Each app's fleet rebased it onto its new run image
+and signed the rebase: checkout, catalog, and storefront all at **02:38–02:39**.
+The estate re-verified on the `estate-changed` dispatch at **02:41**: 9 of 9
+images verified, no brotli finding, catalog's scan verified again (the new
+rebase record and attestations replaced the ones cosign could not read).
+**Fourteen minutes from merge to a green estate, with no human step after the
+merge.** What still needed a human: the merge itself (a week), and the "pin
+to the newest run image" pull requests the fleets opened afterwards, which
+wait again (checkout #9, catalog #7, storefront #8), as does a Dependabot
+pull request in catalog (#8) that fails the gate only because its branch
+still carries the old lock.
 
 | What happened | Which gap | What it proves |
 |---|---|---|
