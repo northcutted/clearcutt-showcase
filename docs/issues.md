@@ -99,3 +99,15 @@ being worked as one pull request per repository and phase:
 | B | showcase | — | VEX statement and finding owners written (`platform/org/vex/`, platform README); the automated drill waits for factory B and releases |
 | C | all | — | Done so far: [start-here.md](start-here.md), [trust-model.md](trust-model.md), organization-ready bring-up (rehearsed). Queued: `app.yml` + `init --platform/--app/--estate`, `doctor`, owner-scoped trust, Notation/buildx/Trivy readers, `policy init`, timeouts and cache |
 | D | clearcutt-portal | [#10](https://github.com/northcutted/clearcutt-portal/pull/10) | Merged 2026-10-18: fix-first view, findings pages, lists, contract warnings and gate, history windowing, 500-image budget, Playwright + axe, signed `bundle-ref`, one version input |
+
+## Seen live while Phases A–D were in progress (2026-10-26)
+
+Three of the assessment's claims happened on the live showcase by themselves,
+a week after Phase A started. Recorded here as evidence; timings close when
+the loop does.
+
+| What happened | Which gap | What it proves |
+|---|---|---|
+| A fixable **Critical, CVE-2026-111497 (brotli)**, reached Wolfi's `libbrotli*` after 2026-10-19. Every platform image build on a pull request from 2026-10-26 stops at the gate (`failOn: critical`, `onlyFixed: true`). The estate report shows **no** brotli finding: its scans are the ones attached at build time (2026-10-16/17). | Gap A (frozen scans) | The portal was green on a CVE the gate refuses. `estate verify --rescan` (verify Phase B) is the fix. |
+| The weekly `update-locks` run of 2026-10-19 opened six pin pull requests (platform #8–#13). Nobody merged them for a week, so by 2026-10-23 every platform image was **11 days behind** the newest `wolfi-base` (`maxDaysBehind: 7`) and the estate went red: 7 of 9 images failed. The locks were re-resolved by hand on 2026-10-26 02:15 UTC (they now carry the brotli fix). | Automation needs no hands (Phase B: `auto-merge`) | A pin PR that waits for a human is a pin that never lands. The bot's pull requests must merge themselves once green. |
+| Since 2026-10-23 catalog's vulnerability-scan attestation is reported **`failed`** ("not signed by a trusted signer") with the detail "cosign verify-attestation: trusted root is required when using new bundle format". The attestation is stored as OCI referrers (cosign v3's new bundle format), verifies locally with cosign 3.1.3, and the SBOM on the same image verifies in the same run. | "Couldn't check" ≠ "failed" (Phase A, verify #74, unreleased) and new-bundle-format handling (verify Phase B) | A tooling error read as "signed by someone untrusted". With #74 released it reads `unknown`; the root cause is being fixed in verify Phase B. |
