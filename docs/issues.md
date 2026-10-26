@@ -91,7 +91,11 @@ being worked as one pull request per repository and phase:
 
 | Phase | Repository | Pull request | Status |
 |---|---|---|---|
-| A | clearcutt-verify | — | In progress |
-| A | clearcutt-factory | — | In progress |
-| A | showcase | this repository | Done: trust policy from the signed profile (#7); status tables retired; demo commands fixed |
-| D | clearcutt-portal | — | In progress |
+| A | clearcutt-verify | [#74](https://github.com/northcutted/clearcutt-verify/pull/74) | Merged 2026-10-18: #1, #2, #6, #8, #9 fixed; "couldn't check" is `unknown`; `metadata.platforms`; rebase-record tests read; real-cosign `cosign-e2e` job |
+| A | clearcutt-factory | [#63](https://github.com/northcutted/clearcutt-factory/pull/63) | CI green; #3, #4, #5, #10, workflow hardening, `.gitignore`/`.dockerignore`, real-cosign `cosign` job, attestation healing (Phase B) |
+| A | showcase | this repository | Done: trust policy from the signed profile (#7); status tables retired; demo commands fixed; Dependabot and a read-only workflow token in every repository |
+| B | clearcutt-verify | — | In progress: `--rescan`, VEX, observe-only tier, stable IDs, staleness from claims, `sourceRepositoryOwner`, the `estate` signer role, contract gate |
+| B | clearcutt-factory | — | Queued after A: build-image event, stacks by digest, `reattest`, image-scoped VEX, `auto-merge` |
+| B | showcase | — | VEX statement and finding owners written (`platform/org/vex/`, platform README); the automated drill waits for factory B and releases |
+| C | all | — | Done so far: [start-here.md](start-here.md), [trust-model.md](trust-model.md), organization-ready bring-up (rehearsed). Queued: `app.yml` + `init --platform/--app/--estate`, `doctor`, owner-scoped trust, Notation/buildx/Trivy readers, `policy init`, timeouts and cache |
+| D | clearcutt-portal | [#10](https://github.com/northcutted/clearcutt-portal/pull/10) | Merged 2026-10-18: fix-first view, findings pages, lists, contract warnings and gate, history windowing, 500-image budget, Playwright + axe, signed `bundle-ref`, one version input |
