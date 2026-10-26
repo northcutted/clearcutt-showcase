@@ -100,7 +100,8 @@ A `verified` image met the policy, on evidence a trusted signer vouched for,
   the one attached when the image was built or rebased. Unless the estate
   runs `estate verify --rescan` (verify v0.17.0 and later), a CVE published
   after that date isn't in it. `maxScanAgeDays` in the policy turns an old
-  scan into `unverified`; the showcase's policy sets it.
+  scan into `unverified`. The showcase doesn't set it yet: it will, together
+  with `--rescan`, once verify v0.17.0 is released.
 - **That there are no Critical vulnerabilities.** `onlyFixed: true` (the
   showcase's setting) gates only on findings with a fix available. Unfixed
   Criticals are reported, not gated.
