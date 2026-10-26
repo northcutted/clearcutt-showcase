@@ -96,12 +96,15 @@ and becomes a rebuild pull request instead.
 A `verified` image met the policy, on evidence a trusted signer vouched for,
 **as of the evidence's own date**. It does not prove:
 
-- **That the image has no vulnerabilities today.** The vulnerability scan is
-  the one attached when the image was built or rebased. Unless the estate
-  runs `estate verify --rescan` (verify v0.17.0 and later), a CVE published
-  after that date isn't in it. `maxScanAgeDays` in the policy turns an old
-  scan into `unverified`. The showcase doesn't set it yet: it will, together
-  with `--rescan`, once verify v0.17.0 is released.
+- **That the image has no vulnerabilities today.** The publisher's scan is
+  the one attached when the image was built or rebased: a CVE published
+  after that date isn't in it. The showcase's estate therefore runs
+  `estate verify --rescan` (verify v0.17.0 and later): grype scans each
+  image's verified SBOMs again with that day's database, the policy gates
+  on the worse of the two scans, and `maxScanAgeDays: 7` leaves an image
+  whose rescan database is older than that `unverified`. Even so, the
+  result is only as current as grype's database, and only covers the
+  packages the SBOM lists.
 - **That there are no Critical vulnerabilities.** `onlyFixed: true` (the
   showcase's setting) gates only on findings with a fix available. Unfixed
   Criticals are reported, not gated.

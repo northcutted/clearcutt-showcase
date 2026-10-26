@@ -15,3 +15,9 @@ trustPolicy: .profile/trust-policy.yaml
 failOn: critical
 onlyFixed: true
 maxDaysBehind: 7
+# estate.yml runs --rescan: grype scans each image's verified SBOMs again
+# with today's database, and the policy gates on the worse of that scan and
+# the one the publisher attested (scanSource: worst, the default with
+# --rescan). A rescan's age is its database's: older than 7 days leaves the
+# image unverified, as an image no rescan could cover is.
+maxScanAgeDays: 7

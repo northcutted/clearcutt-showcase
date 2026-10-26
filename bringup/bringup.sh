@@ -49,7 +49,7 @@
 #                         the five repositories (default), or each repository.
 #                         Personal accounts: always each repository
 #   --factory-ref REF     clearcutt-factory release tag or commit SHA (default v0.3.0)
-#   --verify-ref REF      clearcutt-verify release tag or commit SHA (default v0.16.0)
+#   --verify-ref REF      clearcutt-verify release tag or commit SHA (default v0.17.0)
 #   --verify-version V    clearcutt-verify release to install (default: --verify-ref if
 #                         a tag, else "source", which builds that commit)
 #   --portal-ref REF      clearcutt-portal release tag or commit SHA (default v0.1.0)
@@ -77,7 +77,7 @@ roles=(platform checkout catalog storefront showcase)
 app_roles=(checkout catalog storefront)
 cmd=up owner='' owner_type=org prefix='' prefix_set=false token=app secrets_at=''
 app_id=${CLEARCUTT_APP_ID:-} app_key_file=${CLEARCUTT_APP_PRIVATE_KEY_FILE:-}
-factory_ref=v0.3.0 verify_ref=v0.16.0 verify_version='' portal_ref=v0.1.0
+factory_ref=v0.3.0 verify_ref=v0.17.0 verify_version='' portal_ref=v0.1.0
 showcase_ref=HEAD steps='' protect=false wait_publish=false reset_secrets=false
 skip_credentials=false work='' git_protocol=https app_code='' app_name='' out_file=''
 

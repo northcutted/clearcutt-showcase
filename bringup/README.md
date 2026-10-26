@@ -25,7 +25,7 @@ records what was checked before the first run.
 | 3 | Credentials | A **GitHub App**: a `CLEARCUTT_APP_ID` variable and a `CLEARCUTT_APP_PRIVATE_KEY` secret in each of the five repositories (a personal account has no organization secrets). Its tokens expire within the hour and belong to no person. `--token pat` (`CLEARCUTT_BOT_TOKEN`) remains as a fallback | `--app-id`, `--app-key-file` |
 | 4 | Settings | Each repository: a read-only workflow token that may not create or approve pull requests (the App opens them); Dependabot alerts and security updates; Pages from GitHub Actions on the showcase. Branch protection and auto-merge later | `--protect` when wanted |
 | 5 | Drill staging | A platform PR labelled **DRILL** holds OpenSSL 3 at 3.6.3-r4 and libxml2 at 2.13.6-r3 ([demo-script Act 6](../docs/demo-script.md#act-6-cve-drill)) | `drill-github.sh stage` |
-| 6 | Tool versions | clearcutt-factory **v0.3.0**, clearcutt-verify **v0.16.0**, and clearcutt-portal **v0.1.0** (all released) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
+| 6 | Tool versions | clearcutt-factory **v0.3.0**, clearcutt-verify **v0.17.0**, and clearcutt-portal **v0.1.0** (all released) | `--factory-ref`, `--portal-ref`, `--verify-ref` (these are the defaults) |
 | 7 | What the showcase repository starts from | This repository's history (plan §1), plus one commit adding [`repos/showcase/`](repos/showcase/) | `--showcase-ref` (default `HEAD`) |
 
 ### Names in a personal account
@@ -58,9 +58,11 @@ showcase's. All five get the topic `clearcutt-showcase`.
 
 ## 2. Before running
 
-**Releases.** clearcutt-factory v0.3.0, clearcutt-verify v0.16.0, and
-clearcutt-portal v0.1.0 are published (verify v0.16.0 was released on
-2026-10-17; the live showcase's `estate.yml` pins it).
+**Releases.** clearcutt-factory v0.3.0, clearcutt-verify v0.17.0, and
+clearcutt-portal v0.1.0 are published (verify v0.17.0 was released on
+2026-10-26; the live showcase's `estate.yml` pins it). verify v0.17.0's
+`estate verify --rescan` needs grype on the runner; `estate.yml` installs a
+pinned, checksum-checked release.
 
 **On this machine:**
 
@@ -131,7 +133,7 @@ the app repositories; the platform and the apps dispatch
 
 ```sh
 cd ~/Development/clearcutt/clearcutt-showcase      # branch bringup/phase-3 (or wherever it is merged)
-# The defaults pin factory v0.3.0, verify v0.16.0, and portal v0.1.0.
+# The defaults pin factory v0.3.0, verify v0.17.0, and portal v0.1.0.
 
 # 0. Once: the gh scope, and the tools.
 gh auth refresh -h github.com -s workflow
@@ -143,8 +145,8 @@ cosign version
 bringup/bringup.sh --owner northcutted --owner-type user --offline
 bringup/bringup.sh --owner northcutted --owner-type user
 
-# 2. Approve clearcutt-verify's v0.16.0 release gate (web), then check:
-gh release view v0.16.0 -R northcutted/clearcutt-verify
+# 2. Check the pinned releases exist:
+gh release view v0.17.0 -R northcutted/clearcutt-verify
 
 # 3. Create the five repositories and their settings (no pushes, no credentials yet).
 bringup/bringup.sh --owner northcutted --owner-type user --steps repos,settings --apply
@@ -194,7 +196,6 @@ until it exists).
 
 ## 4. What stays manual
 
-- Approving clearcutt-verify's v0.16.0 release gate.
 - Creating the GitHub App and installing it on the five repositories.
 - **Package visibility.** GHCR may create the first packages private. The
   `apps` step warns and links each package's settings; make the platform,
