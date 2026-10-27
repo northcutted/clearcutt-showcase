@@ -6,6 +6,10 @@ three tools together, using the live showcase as the worked example
 (`northcutted/clearcutt-showcase*`, images under
 `ghcr.io/northcutted/clearcutt-showcase/`).
 
+The bring-up pins Factory v0.4.1, Verify v0.17.0 and Portal v0.2.0.
+[The status table](issues.md#from-the-second-assessment-2026-10-18) records
+which migration steps have reached the live repositories.
+
 ## 1. The signer chain
 
 Every signature is a Sigstore keyless signature made by a GitHub Actions
@@ -15,14 +19,14 @@ the chain uses a long-lived key.
 
 | Artifact | Signed by (certificate identity) | Bound to | Checked by | Where that trust is written |
 |---|---|---|---|---|
-| clearcutt-factory, -verify, -portal releases | each tool's own release workflow | the tool's repository, a release tag | each tool's GitHub Action, before it runs the binary (`cosign verify-blob` with the release's Sigstore bundle, plus `SHA256SUMS.txt`) | the actions themselves |
+| clearcutt-factory, -verify, -portal releases | each tool's own release workflow | the tool's repository and release source ref | each tool's GitHub Action, before it runs the binary (`cosign verify-blob` with the release's Sigstore bundle and the published checksums) | the actions themselves; Verify's release identity is its workflow on `main`, while Factory and Portal use their release tags |
 | Platform images (`platform/{build,run}-*`) | factory's reusable `images.yml` (built) or `fleet.yml` (rebased), **at a release tag** | the run's repository (`sourceRepository`: the platform repository), its ref (`sourceRef: refs/heads/main`), and the image's own `org.opencontainers.image.source` label (`sourceMatchesImage`) | factory, wherever a stack or app uses the image; verify, for the estate | `org/trust.yaml` in the platform repository, signer `platform-images` |
 | App images (`apps/{checkout,catalog,storefront}`) | the same reusable workflows | the app's own repository, `main`, its source label | factory (reproduce, fleet); verify | `org/trust.yaml`, one signer per app repository |
 | Stacks (`stacks/{go,python,node}:1`) | the platform's own `stacks.yml` on `main` | — (the identity is the platform's workflow) | factory, every time an app builds or rebases (`requireSignedStacks`) | `org/trust.yaml`, signer `platform-stacks` (role `stack`) |
 | The shared profile (`factory/org:1`: the profile, the trust policy, the VEX statements) | the platform's `profile.yml` on `main` | — | factory, every time an app repository loads its profile (`extends.signer`, at the digest the lock pins); the estate workflow, before it reads the trust policy out of it | each app's `factory.org.yaml` (`extends.signer`); the estate workflow (`PROFILE_SIGNER`) |
-| SBOM, vulnerability scan, recipe, rebase record, reproduction | the same workflow run that signed the image (cosign attestations) | as the image | verify reads an attestation's content **only** after cosign verified it against a trusted signer | as the image |
+| SBOM, vulnerability scan, recipe, rebase record, reproduction | the build or fleet workflow (cosign attestations); `reattest.yml` can attach a fresh scan and reproduction evidence to the same image digest | as the image; every accepted workflow still has the repository, `main` and source-label restrictions | verify reads an attestation's content **only** after cosign verified it against a trusted signer | as the image; the image signers also name `reattest.yml` |
 | SLSA provenance | GitHub artifact attestations, made inside factory's reusable workflow | the app's repository | verify (signature, plus the source repository and commit it names); `gh attestation verify --repo … --signer-repo northcutted/clearcutt-factory` | — |
-| The estate report bundle (`estate:latest`) | the showcase's `estate.yml` on `main` | — | `clearcutt-verify estate pull` refuses an unsigned or otherwise signed bundle (verify v0.17.0 and later) | the estate workflow's `estate pull` flags |
+| The estate report bundle (`estate:latest`) | the showcase's `estate.yml` on `main` | — | `clearcutt-verify estate pull --policy estate/policy.yaml` refuses an unsigned or otherwise signed bundle | the `estate` role in the shared profile's trust policy, separate from image signers |
 | `repository_dispatch` events between repositories | the GitHub App `clearcutt-showcase-bot` (short-lived installation tokens) | — | nothing needs to: a dispatch is only a hint. The receiver re-resolves tags from the registry and verifies every signature itself, so a forged dispatch can at most start a run that finds nothing new | the App's installation (five repositories) |
 
 **One trust policy, one copy.** `org/trust.yaml` is the only place the
@@ -32,7 +36,7 @@ then reads the policy out of it). No tool reads it from an unsigned checkout.
 
 **Why one signer per repository, not per owner.** factory's reusable
 workflows can be called by any repository on GitHub, so "signed by
-`images.yml@v0.3.0`" alone proves nothing about *whose* image it is. Each
+`images.yml@v0.4.1`" alone proves nothing about *whose* image it is. Each
 signer therefore also names the repository whose runs count, requires the
 run to be on `main`, and requires the image to name that repository as its
 source. A pull request branch, a fork, or another repository of the same
@@ -104,13 +108,20 @@ A `verified` image met the policy, on evidence a trusted signer vouched for,
   on the worse of the two scans, and `maxScanAgeDays: 7` leaves an image
   whose rescan database is older than that `unverified`. Even so, the
   result is only as current as grype's database, and only covers the
-  packages the SBOM lists.
+  packages the SBOM lists. Factory's daily re-attestation caller also renews
+  publisher scan evidence older than six days, without rebuilding the image
+  or moving its tags. A fresh attestation is not a fresh SBOM: newly missed
+  packages still require a corrected inventory.
 - **That there are no Critical vulnerabilities.** `onlyFixed: true` (the
   showcase's setting) gates only on findings with a fix available. Unfixed
   Criticals are reported, not gated.
-- **That suppressed findings don't matter.** A VEX statement (`org/vex/`)
-  removes a finding from the gate. The report shows which statement
-  suppressed what; reviewing those statements is a human job.
+- **That suppressed findings don't matter.** The security-owned VEX in
+  `org/vex/` travels inside the signed shared profile. Factory uses it for
+  publisher scans; the estate reads the same bundled document for rescans.
+  Only statements matching that image or package can remove a finding from
+  its gate. The scan attestation retains VEX metadata, and the rescan report
+  shows which statement suppressed what; reviewing those statements is a
+  human job. A statement about one image does not exempt its siblings.
 - **That the app works.** factory's smoke test runs the image's declared
   test (in the showcase, the service starts and answers its health check).
   It is not a test suite.
