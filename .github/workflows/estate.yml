@@ -163,9 +163,8 @@ jobs:
   portal:
     needs: verify
     if: ${{ !cancelled() && needs.verify.outputs.bundle == 'true' }}
-    uses: northcutted/clearcutt-portal/.github/workflows/portal.yml@v0.1.0
+    uses: northcutted/clearcutt-portal/.github/workflows/portal.yml@v0.2.0
     permissions: {contents: read, pages: write, id-token: write}
     with:
       bundle-artifact: estate-bundle
       title: clearcutt-showcase estate
-      portal-version: v0.1.0
