@@ -21,3 +21,6 @@ maxDaysBehind: 7
 # --rescan). A rescan's age is its database's: older than 7 days leaves the
 # image unverified, as an image no rescan could cover is.
 maxScanAgeDays: 7
+
+# Read the security-owned VEX from the same signature-verified profile.
+vex: [.profile/vex/catalog.openvex.json]

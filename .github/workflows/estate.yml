@@ -18,6 +18,7 @@
 #      https://northcutted.github.io/clearcutt-showcase/ (Pages source: GitHub Actions).
 name: estate
 on:
+  pull_request:
   schedule:
     - cron: "17 7 * * *" # daily, after the apps' fleet runs (05:41)
   repository_dispatch:
@@ -25,13 +26,53 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-# One run at a time: each extends the history the last one pushed. A newer
-# run waits; a burst of dispatches costs at most one more run.
+# Publisher runs serialize because each extends the last run's history.
+# PR validation has its own group and cannot cancel a publisher.
 concurrency:
-  group: estate
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('estate-pr-{0}', github.event.pull_request.number) || 'estate' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  # Exercise policy-based history restoration without publishing or signing.
+  config:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      ESTATE: ghcr.io/northcutted/clearcutt-showcase/estate:latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: northcutted/clearcutt-verify@v0.17.0
+        with:
+          version: ""
+      - uses: oras-project/setup-oras@005458ad77f1c8facd38a094e4af2e69e5607ff4 # v2.0.2
+      - name: Fetch the trust policy from the signed shared profile
+        env:
+          PROFILE: ghcr.io/northcutted/clearcutt-showcase/factory/org:1
+          PROFILE_SIGNER: https://github.com/northcutted/clearcutt-showcase-platform/.github/workflows/profile.yml@refs/heads/main
+        run: |
+          set -euo pipefail
+          digest=$(oras resolve "$PROFILE")
+          cosign verify --certificate-identity "$PROFILE_SIGNER" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            "${PROFILE%:*}@$digest" >/dev/null
+          oras pull "${PROFILE%:*}@$digest" --output estate/.profile
+          test -s estate/.profile/trust-policy.yaml
+          test -s estate/.profile/vex/catalog.openvex.json
+          echo "trust policy from ${PROFILE%:*}@$digest"
+      - name: Validate the policy and restore signed history
+        run: |
+          clearcutt-verify estate pull "$ESTATE" --output dist/estate --allow-missing \
+            --policy estate/policy.yaml
+
   verify:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -51,7 +92,7 @@ jobs:
         with:
           persist-credentials: false
       # clearcutt-factory, for --reproduce (and QEMU for the other platform).
-      - uses: northcutted/clearcutt-factory@v0.3.0
+      - uses: northcutted/clearcutt-factory@v0.4.1
         with:
           tools: "false"
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -107,8 +148,7 @@ jobs:
       - name: Pull the last report bundle
         run: |
           clearcutt-verify estate pull "$ESTATE" --output dist/estate --allow-missing \
-            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/estate.yml@refs/heads/main" \
-            --certificate-oidc-issuer https://token.actions.githubusercontent.com
+            --policy estate/policy.yaml
 
       # Exit 0: every image meets the policy; 2: one falls short (the report
       # says which and why); anything else: verification couldn't run, or it
@@ -162,7 +202,7 @@ jobs:
   # Also when the gate failed: the site shows why.
   portal:
     needs: verify
-    if: ${{ !cancelled() && needs.verify.outputs.bundle == 'true' }}
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.verify.outputs.bundle == 'true' }}
     uses: northcutted/clearcutt-portal/.github/workflows/portal.yml@v0.2.0
     permissions: {contents: read, pages: write, id-token: write}
     with:
