@@ -224,4 +224,92 @@ what followed it; `continue` picks it up.
 |---|---|
 | 21:39 | baseline read; factory v0.4.1 installed locally (release signature verified) |
 | 21:53:52 | act 1 stage: [platform#18](https://github.com/northcutted/clearcutt-showcase-platform/pull/18) opened (Go held at 1.27.2 in build-go), auto-merge on at 21:53:56 |
+| 21:57:02 | platform#18 merged by auto-merge (gate green 21:56:44) |
+| 22:16:16 | act 1 stage done: checkout rebuilt on Go 1.27.2 and published, estate 9/9 verified, GO-2026-6809 shown in checkout and build-go |
+| 22:17 | act 1 respond started (`toolchain-respond`) |
 
+
+## Act 2: a CVE in an app's own dependency (Dependabot)
+
+Recorded from the live history; nothing was staged. checkout pins
+`github.com/go-chi/chi/v5 v5.2.3`. Dependabot security updates are on in
+every app repository (`bringup.sh`), and `.github/dependabot.yml` covers
+`gomod` in `/checkout`.
+
+| UTC | t | What happened | Links |
+|---|---|---|---|
+| 2026-10-19 00:27:19 | alert 0 | Dependabot alert #1: GHSA-mqqf-5wvp-8fh8 (Medium, CVSS 4.7, open redirect in `RedirectSlashes`), patched in 5.2.4 | [alert #1](https://github.com/northcutted/clearcutt-showcase-checkout/security/dependabot/1) |
+| 2026-10-19 00:32:38 | +5m19s | security update [checkout#6](https://github.com/northcutted/clearcutt-showcase-checkout/pull/6) (chi 5.2.3 → 5.2.4) | |
+| 2026-10-19 | | #6's CI (factory v0.3.0 workflows, before `images / result` existed) built, scanned and gated the app: green. Nothing could merge it but the owner; it waited | |
+| 2026-10-27 02:23:48 | | the v0.4.1 adoption ([#11](https://github.com/northcutted/clearcutt-showcase-checkout/pull/11)) merges; Dependabot rescans | |
+| 2026-10-27 02:23:53 | alert 0 | alert #2: GHSA-j6qf-3m9c-vwj3 (Medium, client IP spoofing in `ClientIPFromXFF`; advisory published 2026-10-23), patched in 5.4.0 | [alert #2](https://github.com/northcutted/clearcutt-showcase-checkout/security/dependabot/2) |
+| 2026-10-27 02:24:37 | +44s | security update [checkout#12](https://github.com/northcutted/clearcutt-showcase-checkout/pull/12) (chi 5.2.3 → 5.4.0, fixes both); #6 closed as superseded at 02:24:46 | |
+| 2026-10-27 02:27:51 | +3m58s | **#12 green**: `images / result` passed (build, smoke test, scan, gate; 3m05s of CI) | |
+| since then | | **waiting for the owner**: auto-merge is not on for #12 | |
+
+**Where it stops: "PR green, waiting for the owner".** The repository allows
+auto-merge and requires `images / result`, but nothing turns auto-merge on
+for Dependabot's pull requests: `fleet.yml` and `update-locks.yml` turn it on
+only for the App's own pull requests, and Dependabot doesn't turn it on
+itself. Agents may not merge a bot's pull request, so the act ends here,
+with #12 green for 2.8 days at the time of the drill. Both advisories show in
+the estate meanwhile: checkout's attested scan and rescan list
+GHSA-mqqf-5wvp-8fh8 and GHSA-j6qf-3m9c-vwj3 (Medium, fixable) and three
+Unknown chi advisories (GO-2026-5774/5775/5777); none is gated
+(`failOn: critical`). Once #12 merges, checkout's `images` job publishes the
+rebuilt app, `fleet` follows, and `estate-changed` refreshes the estate, as
+in act 1.
+
+What would close the loop without a person: a small workflow in each app
+repository that turns on auto-merge for Dependabot's **security** updates
+(`dependabot/fetch-metadata`, then `gh pr merge --auto --merge`), so they
+merge once the same required check passes. That is a decision for the
+owner (it lets a third-party bot's change reach `main` behind CI alone), so
+the drill doesn't add it; it is listed in [docs/issues.md](../docs/issues.md).
+
+## Act 1: a toolchain CVE (gap B)
+
+Go's standard library is compiled into every Go binary, so a fix in it
+reaches checkout only through a rebuild on a new build image; no rebase can
+deliver it. factory v0.4.1 announces a build image as
+`clearcutt.build-image-published`, stacks now name their images by digest
+(so stack go:1 changes, and `clearcutt.stack-published` fires, whenever
+build-go does), and each app answers both with `update-locks.yml`
+(`update: stack`, `auto-merge: all`).
+
+The hold: `go-1.27=1.27.2-r0` in build-go, re-locked with
+`lock --update-package go-1.27` (only go-1.27 moved). Go 1.27.2 has
+**GO-2026-6809** (CVE-2026-111943, crypto/x509 denylist), fixed in 1.27.3.
+grype rates it Unknown, so the Critical gate lets the held image out, as a
+real toolchain CVE below the gate would be. (Go 1.27.0 and 1.27.1 have two
+fixable Criticals, GO-2026-6604 and GO-2026-6612; holding those would have
+stopped at the platform's own gate, which is act 3's subject.)
+
+### Stage: hold Go 1.27.2
+
+[platform#18](https://github.com/northcutted/clearcutt-showcase-platform/pull/18)
+opened 21:53:52Z, auto-merge on at 21:53:56; its gate (build-go only,
+`changed-only`) passed at 21:56:44, and GitHub merged it at **21:57:02Z (t = 0)**.
+
+| t | What happened | Links |
+|---|---|---|
+| +4m14s | build-go published (signed, attested, SLSA provenance): `2244cff126b0…`; nothing else changed, so nothing else was republished | [platform run](https://github.com/northcutted/clearcutt-showcase-platform/actions/runs/40961998726) |
+| +4m35s | `notify-images`: **`clearcutt.build-image-published`** to checkout, catalog, storefront | |
+| +5m00s | stack go:1 pushed by digest (`e66872c8…` → `b89a85b2…`) | |
+| +5m04s | **checkout#13 "Rebuild checkout on the newest build image"** opened by the App with auto-merge on: `lock --update-stack` moved the build image and the stack, nothing else. catalog's and storefront's `update-locks` ran too and proposed nothing (their stacks hadn't moved) | [checkout#13](https://github.com/northcutted/clearcutt-showcase-checkout/pull/13), [run](https://github.com/northcutted/clearcutt-showcase-checkout/actions/runs/40962601601) |
+| +5m12s | `notify-stacks`: **`clearcutt.stack-published`** to the three apps; checkout's second `update-locks` found #13 already current | [run](https://github.com/northcutted/clearcutt-showcase-checkout/actions/runs/40962681573) |
+| +6m09s | build-go reproduced on a second runner; platform run green at +6m25s | |
+| +6m17s | the platform's `estate-changed` refresh (9/9 verified; build-go now shows GO-2026-6809) | [estate run](https://github.com/northcutted/clearcutt-showcase/actions/runs/40962833622) |
+| +8m59s | checkout#13's gate green (build, smoke test, scan, gate: 3m55s from opening) | |
+| **+9m39s** | **checkout#13 merged by auto-merge** (`clearcutt-showcase-bot`), 40s after the check | |
+| +14m10s | checkout rebuilt on Go 1.27.2 and published: `ddd72341…`; fleet found it on the newest run image (nothing to do) | [run](https://github.com/northcutted/clearcutt-showcase-checkout/actions/runs/40963291302) |
+| +15m25s | checkout reproduced on a second runner; `estate-changed` sent | |
+| **+19m14s** | **estate verified and portal deployed**: 9 of 9 verified; checkout's attested scan and its rescan both list **GO-2026-6809 (`stdlib` go1.27.2, Unknown, fixed in 1.27.3)**, as does build-go | [estate run](https://github.com/northcutted/clearcutt-showcase/actions/runs/40964068710) |
+
+No person acted after opening the DRILL pull request. One ordering detail:
+`notify-images` announces build-go (+4m35s) before `stacks` has pushed the
+stack that names it (+5m00s). checkout's first `update-locks` happened to
+resolve the stack just after it moved; had it run earlier, it would have
+proposed the build image alone, and the `stack-published` event that follows
+would have updated the pull request. Either way the second event covers the
+first one's race.
