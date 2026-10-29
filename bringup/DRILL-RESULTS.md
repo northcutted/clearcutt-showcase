@@ -161,3 +161,67 @@ bringup/drill-github.sh --owner northcutted --owner-type user --git-protocol ssh
 
 With the GitHub App installed, drop `--wake-apps` (`notify` does it), and
 the bot's PRs get CI without being reopened.
+
+# Drill 2: the fully automated drill (2026-10-29)
+
+The second drill ([assessment.md §4, Phase B](../docs/assessment.md#phase-b-close-the-structural-gaps-3-weeks)),
+on the live showcase under `northcutted` with the GitHub App
+`clearcutt-showcase-bot`, clearcutt-factory **v0.4.1** (platform and apps),
+clearcutt-verify **v0.17.0** (estate, `--rescan`), and clearcutt-portal
+**v0.2.0**. It is driven by [`drill-github.sh`](drill-github.sh)
+(`toolchain-stage`, `toolchain-respond`, `critical-stage`, `critical-vex`,
+`critical-respond`, `forge`) with `--auto-merge --follow`: the script opens
+each act's DRILL pull request and turns on auto-merge for it, so GitHub
+merges it when the platform's required check (`images / result`) passes;
+after that it only watches. Nobody merges a bot's pull request: the App's
+pull requests merge themselves, or the act stops and says so.
+
+Times are from the GitHub API, from each DRILL merge (t = 0) unless stated.
+
+## Settings found before the drill
+
+| Repository | Allow auto-merge | Branch protection on `main` | Delete merged branches |
+|---|---|---|---|
+| clearcutt-showcase-platform | on | required check `images / result` (GitHub Actions), not strict, admins not enforced, no reviews | on |
+| clearcutt-showcase-checkout | on | the same | on |
+| clearcutt-showcase-catalog | on | the same | on |
+| clearcutt-showcase-storefront | on | the same | on |
+| clearcutt-showcase (estate) | off | none | on |
+
+Every image repository calls `fleet.yml` and `update-locks.yml` with
+`auto-merge: all`. Nothing turns on auto-merge for Dependabot's pull
+requests (see act 2). No setting was changed for the drill.
+
+## Baseline (before act 1)
+
+The scheduled [estate run](https://github.com/northcutted/clearcutt-showcase/actions/runs/40834973284)
+of 2026-10-29 07:22Z: **9 of 9 verified**, every image rescanned (no
+`unknown`), no fixable Critical or High except build-node's npm Highs (8 in
+the rescan, 7 attested). checkout reports chi's two Medium advisories and
+three Unknown ones (its own dependency, act 2). Digests:
+
+| Image | Digest |
+|---|---|
+| platform/run-go:1 | `sha256:ed43202dfc75…` |
+| platform/build-go:1 | `sha256:cc3bea21a21b…` |
+| platform/run-python:3.14 | `sha256:3ec0446df611…` |
+| platform/build-python:3.14 | `sha256:6db1544584c2…` |
+| platform/run-node:24 | `sha256:5b0a15d5ebd6…` |
+| platform/build-node:24 | `sha256:c26523026253…` |
+| apps/checkout:latest | `sha256:a32fae8e03e4…` |
+| apps/catalog:latest | `sha256:a03d769e0498…` |
+| apps/storefront:latest | `sha256:64b37f20b952…` |
+| stacks/go:1 | `sha256:e66872c8c10c…` |
+| factory/org:1 (shared profile) | `sha256:1bb0b6d38484…` |
+
+## Running log
+
+Kept as the drill runs, so a stopped drill can be resumed from here. To
+resume: `drill-github.sh … status` shows the last DRILL pull request and
+what followed it; `continue` picks it up.
+
+| UTC | Step |
+|---|---|
+| 21:39 | baseline read; factory v0.4.1 installed locally (release signature verified) |
+| 21:53:52 | act 1 stage: [platform#18](https://github.com/northcutted/clearcutt-showcase-platform/pull/18) opened (Go held at 1.27.2 in build-go), auto-merge on at 21:53:56 |
+

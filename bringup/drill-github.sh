@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# The CVE drill (docs/demo-script.md, Act 6) on GitHub: the counterpart of
-# prototype/scripts/drill.sh, which ran it against a local registry. Dry run
-# by default: changes are printed, not made.
+# The CVE drills (docs/demo-script.md, Act 6, and drill 2 in
+# bringup/DRILL-RESULTS.md) on GitHub: the counterpart of
+# prototype/scripts/drill.sh, which ran the first against a local registry.
+# Dry run by default: changes are printed, not made.
 #
-#   bringup/drill-github.sh --owner NAME --owner-type user|org [--apply] [options] stage|respond|continue|status
+#   bringup/drill-github.sh --owner NAME --owner-type user|org [--apply] [options] COMMAND
 #
+# Drill 1 (OpenSSL and libxml2 in the run images):
 #   stage     open a platform pull request labelled DRILL that holds OpenSSL 3
 #             (libcrypto3/libssl3 3.6.3-r4, CVE-2026-14456) in every run image
 #             and libxml2 2.13.6 (libxml2.so.2) in run-python and build-python,
@@ -14,9 +16,29 @@
 #             the "before" state.
 #   respond   the same with the holds released ("Release the OpenSSL and
 #             libxml2 holds"): the live part of the demo.
-#   continue  pick up the latest DRILL pull request where stage or respond
-#             left it (after --no-merge, or an interruption): merge it once
-#             green, then follow it through with the same options
+#
+# Drill 2 (run it with --auto-merge --follow: nobody merges anything):
+#   toolchain-stage    hold Go at 1.27.2 in build-go (GO-2026-6809): the
+#             platform publishes build-go and stack go:1, notify sends
+#             clearcutt.build-image-published and clearcutt.stack-published,
+#             and checkout's update-locks opens "Rebuild checkout on the
+#             newest build image", which auto-merges and publishes
+#   toolchain-respond  release the Go hold, the same way
+#   critical-stage     hold brotli at 1.2.0-r3 in build-node (CVE-2026-111497,
+#             Critical): the pull request's gate fails, as it should; nothing
+#             merges
+#   critical-vex       add a drill VEX statement (org/vex/drill.openvex.json,
+#             scoped to build-node) to that pull request, re-lock every image
+#             to the new profile, and let it merge once the gate passes
+#   critical-respond   release the brotli hold and remove the drill VEX
+#   forge     send a forged clearcutt.run-image-published to each app, naming
+#             a digest that isn't the run image's (--forge-digest, default
+#             the run image of another stack), and check that the fleets ran
+#             and changed nothing
+#
+#   continue  pick up the latest DRILL pull request where a command left it
+#             (after --no-merge, or an interruption): merge it once green
+#             (or let auto-merge), then follow it through with the same options
 #   status    read-only: the last DRILL merge, the platform's publish, and in
 #             each app the fleet and image runs, the bot's pull requests, and
 #             the image its latest tag holds, timed from that merge.
@@ -28,29 +50,38 @@
 #                     for a personal account, none for an organization)
 #   --apply           make the changes (default: dry run)
 #   --offline         don't read from GitHub either
-#   --no-merge        stage/respond: open the pull request and stop (merge it
-#                     yourself, e.g. live in the browser); status times from
-#                     whenever it was merged
-#   --wake-apps       stage/respond: after the merge, wait for the platform's
-#                     publish, then start each app's fleet with workflow_dispatch
-#                     (what notify's repository_dispatch does when the GitHub
-#                     App exists; without it notify can't reach the apps)
-#   --merge-bot-prs   stage/respond: then wait for each app's
-#                     factory/rebase/<app> pull request, its checks, and merge
-#                     it (so no build from an old lock moves latest back, F6),
-#                     and wait for the publish that follows. A pull request the
-#                     workflow's own token opened (no App) gets no CI until a
-#                     person acts, so it is closed and reopened first
-#   --estate          stage/respond: last, run the showcase's estate workflow
-#                     (verify and portal) and wait for it
+#   --no-merge        open the pull request and stop (merge it yourself, e.g.
+#                     live in the browser); status times from whenever it was
+#                     merged
+#   --auto-merge      turn on GitHub auto-merge (merge commit) for the DRILL
+#                     pull request, so it merges when the platform's required
+#                     check passes, instead of merging it here
+#   --wake-apps       after the merge, wait for the platform's publish, then
+#                     start each app's fleet with workflow_dispatch (what
+#                     notify's repository_dispatch does when the GitHub App
+#                     exists; without it notify can't reach the apps)
+#   --merge-bot-prs   then wait for each app's factory/rebase/<app> pull
+#                     request, its checks, and merge it (so no build from an
+#                     old lock moves latest back, F6), and wait for the publish
+#                     that follows. A pull request the workflow's own token
+#                     opened (no App) gets no CI until a person acts, so it is
+#                     closed and reopened first
+#   --follow          with the GitHub App and auto-merge: wait for every run
+#                     the platform's dispatches start in the apps, then for
+#                     each bot pull request they open or update to merge
+#                     itself (or fail), then for the publishes that follow,
+#                     then for the estate refresh those trigger. Merges nothing
+#   --estate          last, run the showcase's estate workflow (verify and
+#                     portal) by hand and wait for it
+#   --forge-digest D  forge: the digest the forged event names
 #   --git-protocol P  https (default; gh's token) or ssh, to clone and push the
 #                     platform repository
 #   --work DIR        work directory (default bringup/.work/ORG)
 #   --platform-clone URL  clone the platform from URL instead of GitHub (a
 #                     local copy, to rehearse the dry run without GitHub)
 #
-# stage and respond need gh, git, python3, and clearcutt-factory v0.3.0 or
-# later (lock --update-package) to re-lock the held images.
+# The commands that change the platform need gh, git, python3, and
+# clearcutt-factory v0.4.1 or later (lock --update-package; image-scoped VEX).
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "$here/.." && pwd)
@@ -58,10 +89,9 @@ root=$(cd "$here/.." && pwd)
 . "$here/lib.sh"
 
 apps=(checkout storefront catalog)
-held_images=(run-go run-python run-node build-python)
 holds=$root/prototype/scripts/drill-holds.py
 owner='' owner_type=org prefix='' prefix_set=false cmd='' merge=true merge_bot_prs=false work='' platform_clone=''
-wake_apps=false estate=false git_protocol=https t0=0
+wake_apps=false estate=false git_protocol=https t0=0 auto_merge=false follow=false forge_digest=''
 
 usage() { sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while (($#)); do
@@ -76,11 +106,15 @@ while (($#)); do
     --merge-bot-prs) merge_bot_prs=true ;;
     --wake-apps) wake_apps=true ;;
     --estate) estate=true ;;
+    --auto-merge) auto_merge=true ;;
+    --follow) follow=true ;;
+    --forge-digest) forge_digest=${2:?}; shift ;;
     --git-protocol) git_protocol=${2:?}; shift ;;
     --work) work=${2:?}; shift ;;
     --platform-clone) platform_clone=${2:?}; shift ;;
     -h | --help) usage 0 ;;
-    stage | respond | continue | status) cmd=$1 ;;
+    stage | respond | continue | status | forge) cmd=$1 ;;
+    toolchain-stage | toolchain-respond | critical-stage | critical-vex | critical-respond) cmd=$1 ;;
     *) printf 'unknown argument: %s\n\n' "$1" >&2; usage 2 ;;
   esac
   shift
@@ -105,7 +139,7 @@ printf '%sCVE drill on GitHub%s: %s in %s (%s, %s…), %s\n' "$_b" "$_n" "$cmd" 
 # libxml2 under either name in run-python and build-python.
 held_packages() {
   local p out=() m=$1/images/$2/image.yaml l=$1/images/$2/image.lock.yaml
-  for p in libcrypto3 libssl3 libxml2 libxml2-16 libxml2-dev libxml2-utils; do
+  for p in $(python3 -I "$holds" packages x "${3:-cve}"); do
     if sed 's/#.*//' "$m" | grep -qE "(^|[^A-Za-z0-9_.-])$p([^A-Za-z0-9_.-]|\$)" ||
       grep -qE "^ *(- )?name: $p\$" "$l"; then out+=("$p"); fi
   done
@@ -113,43 +147,70 @@ held_packages() {
 }
 
 # ---------------------------------------------------------------------------
-# change ACTION TITLE: apply or release the holds in a platform pull request.
-change() {
-  local action=$1 title=$2 branch dir body
-  need git python3
-  [[ $OFFLINE == true ]] || need gh
-  [[ $APPLY == true ]] && need clearcutt-factory
-  branch=drill/$cmd-$(date -u +%Y%m%dT%H%M%SZ)
+# checkout_platform BRANCH [BASE]: the platform clone in $work/drill/platform,
+# on a fresh BRANCH from BASE (default origin/main). Sets dir.
+checkout_platform() {
+  local branch=$1 base=${2:-origin/main}
   dir=$work/drill/platform
-
-  say "Check out $platform main"
-  if [[ $OFFLINE == true && -z $platform_clone ]]; then
-    note "(offline) would clone or fetch https://github.com/$platform"
-    return 0
-  fi
+  say "Check out $platform ${base#origin/}"
   if [[ -d $dir/.git ]]; then
     [[ -n $platform_clone ]] || git -C "$dir" remote set-url origin "$(remote_url "$OWNER" "$(repo_of platform)")"
-    git -C "$dir" fetch -q origin main
+    git -C "$dir" fetch -q origin
   else
     mkdir -p "$(dirname "$dir")"
     git clone -q "${platform_clone:-$(remote_url "$OWNER" "$(repo_of platform)")}" "$dir"
   fi
   git -C "$dir" reset -q --hard
-  git -C "$dir" checkout -q -B "$branch" origin/main
-  ok "$platform main at $(git -C "$dir" rev-parse --short HEAD); holds: $(python3 -I "$holds" show "$dir")"
+  git -C "$dir" clean -fdq
+  git -C "$dir" checkout -q -B "$branch" "$base"
+  ok "$platform ${base#origin/} at $(git -C "$dir" rev-parse --short HEAD)"
+}
+
+# relock_all: re-lock every platform image, keeping every pin: after the
+# shared profile changed (a VEX document added or removed), each lock pins
+# the profile's new digest; nothing else moves, so unchanged images keep
+# their digests and aren't republished.
+relock_all() {
+  local m
+  note "re-lock every image to the changed profile (pins kept: only the profile digest moves)"
+  for m in "$dir"/images/*/image.yaml; do
+    act_in "$dir" clearcutt-factory lock -f "images/$(basename "$(dirname "$m")")/image.yaml"
+  done
+}
+
+# change ACTION TITLE [SET] [VEX]: apply or release SET's holds (default
+# cve) in a platform pull request; VEX add or remove also adds or removes
+# the drill VEX statement.
+change() {
+  local action=$1 title=$2 set=${3:-cve} vex=${4:-} branch body img
+  local -a held_images
+  need git python3
+  [[ $OFFLINE == true ]] || need gh
+  [[ $APPLY == true ]] && need clearcutt-factory
+  branch=drill/$cmd-$(date -u +%Y%m%dT%H%M%SZ)
+  read -r -a held_images <<<"$(python3 -I "$holds" images x "$set")"
+
+  if [[ $OFFLINE == true && -z $platform_clone ]]; then
+    note "(offline) would clone or fetch https://github.com/$platform"
+    return 0
+  fi
+  checkout_platform "$branch"
+  note "holds ($set): $(python3 -I "$holds" show "$dir" "$set"); drill VEX: $(python3 -I "$holds" vex-show "$dir")"
 
   say "$title"
   # The holds edit the working copy only; nothing leaves this machine until
   # the push below, so the diff shows in a dry run too.
-  python3 -I "$holds" "$action" "$dir"
-  if git -C "$dir" diff --quiet; then
+  python3 -I "$holds" "$action" "$dir" "$set"
+  [[ -z $vex ]] || python3 -I "$holds" "vex-$vex" "$dir"
+  if git -C "$dir" diff --quiet && [[ -z $(git -C "$dir" status --porcelain) ]]; then
     ok "nothing to change: the holds are already $([[ $action == apply ]] && echo held || echo released) on main"
     return 0
   fi
   git -C "$dir" --no-pager diff --stat | sed 's/^/   /'
-  note "re-lock only the held packages (factory v0.3.0 lock --update-package), so the PR moves nothing else"
+  [[ -z $vex ]] || relock_all
+  note "re-lock only the held packages (lock --update-package), so the PR moves nothing else"
   for img in "${held_images[@]}"; do
-    act_in "$dir" clearcutt-factory lock -f "images/$img/image.yaml" --update-package "$(held_packages "$dir" "$img")"
+    act_in "$dir" clearcutt-factory lock -f "images/$img/image.yaml" --update-package "$(held_packages "$dir" "$img" "$set")"
   done
   act git -C "$dir" add -A
   act git -C "$dir" commit -q -m "$title"
@@ -157,24 +218,112 @@ change() {
 
   body=$work/drill/body.md
   {
-    echo "**DRILL** (docs/demo-script.md, Act 6): $title."
+    echo "**DRILL**: $title."
     echo
-    if [[ $action == apply ]]; then
-      echo "- OpenSSL 3 (libcrypto3, libssl3) held at 3.6.3-r4 in every run image: CVE-2026-14456 (High), fixed in 3.6.3-r5."
-      echo "- libxml2 held at 2.13.6-r3 (libxml2.so.2) in run-python and build-python, instead of libxml2-16 (2.15.x): an ABI hold."
-      echo
-      echo "Merging publishes the held images; the apps' fleets move onto them (catalog's rebase is refused and gets a rebuild pull request)."
-    else
-      echo "Releases both holds: OpenSSL 3 and libxml2 resolve to their fixed builds again (the lock diffs show the exact versions)."
-      echo
-      echo "Merging publishes the fixed images; notify wakes checkout, catalog, and storefront. checkout and storefront are rebased within minutes; catalog's rebase is refused (it links libxml2.so.2) and it gets a rebuild pull request."
-    fi
+    case $set:$action in
+      cve:apply)
+        echo "- OpenSSL 3 (libcrypto3, libssl3) held at 3.6.3-r4 in every run image: CVE-2026-14456 (High), fixed in 3.6.3-r5."
+        echo "- libxml2 held at 2.13.6-r3 (libxml2.so.2) in run-python and build-python, instead of libxml2-16 (2.15.x): an ABI hold."
+        echo
+        echo "Merging publishes the held images; the apps' fleets move onto them (catalog's rebase is refused and gets a rebuild pull request)."
+        ;;
+      cve:release)
+        echo "Releases both holds: OpenSSL 3 and libxml2 resolve to their fixed builds again (the lock diffs show the exact versions)."
+        echo
+        echo "Merging publishes the fixed images; notify wakes checkout, catalog, and storefront. checkout and storefront are rebased within minutes; catalog's rebase is refused (it links libxml2.so.2) and it gets a rebuild pull request."
+        ;;
+      toolchain:apply)
+        echo "Drill 2, act 1 (a toolchain CVE, gap B): Go held at **1.27.2** in build-go, the toolchain of stack go:1. Go 1.27.2's standard library has GO-2026-6809 (CVE-2026-111943, crypto/x509; grype severity Unknown, so the Critical gate passes it), fixed in 1.27.3."
+        echo
+        echo "Merging publishes build-go and stack go:1; notify sends clearcutt.build-image-published and clearcutt.stack-published; checkout's update-locks opens \"Rebuild checkout on the newest build image\", which merges itself once its gate passes, and the rebuilt checkout carries the old standard library. No run image changes, so no rebase can help: only a rebuild can."
+        ;;
+      toolchain:release)
+        echo "Drill 2, act 1: releases the Go hold; build-go resolves Go 1.27.3 again. Merging rebuilds checkout the same way, without GO-2026-6809."
+        ;;
+      critical:apply)
+        echo "Drill 2, act 3: brotli held at **1.2.0-r3** in build-node: CVE-2026-111497 (Critical, fixed in 1.2.0-r7). The gate (failOn: critical, onlyFixed) must refuse build-node: this pull request is expected to stay red until a VEX statement covers it."
+        ;;
+      critical:release)
+        echo "Drill 2, act 3, clean-up: releases the brotli hold in build-node and removes the drill VEX statement (org/vex/drill.openvex.json) from the shared profile. Every lock pins the profile's new digest; only build-node changes."
+        ;;
+    esac
     echo
-    echo "Lines marked \`# DRILL hold\` are the holds. Opened by bringup/drill-github.sh in the showcase repository."
+    echo "Lines marked \`# DRILL hold\` are the holds. Opened by bringup/drill-github.sh in the showcase repository; results in bringup/DRILL-RESULTS.md."
   } >"$body"
-  act gh label create DRILL --repo "$platform" --color B60205 --description "CVE drill (showcase demo, Act 6)" --force
+  act gh label create DRILL --repo "$platform" --color B60205 --description "CVE drill (showcase drills)" --force
   act gh pr create --repo "$platform" --head "$branch" --base main --title "$title" --body-file "$body" --label DRILL
+  [[ $set:$action == critical:apply ]] && { expect_red "$branch"; return 0; }
   finish "$branch"
+}
+
+# expect_red PR: wait for the DRILL pull request's checks and report that the
+# gate refused it (the point of critical-stage); never merges.
+expect_red() {
+  local pr=$1
+  say "Wait for the gate: it should fail"
+  if [[ $APPLY != true ]]; then note "would wait for the checks of $platform $pr"; return 0; fi
+  if wait_checks "$platform" "$pr"; then
+    warn "the gate passed: the Critical didn't stop build-node"
+  else
+    ok "the gate refused it: $(look gh pr checks "$pr" --repo "$platform" --json name,bucket --jq '[.[] | select(.bucket == "fail") | .name] | join(", ")' || true)"
+  fi
+  note "next: drill-github.sh … critical-vex (adds the drill VEX statement to this pull request)"
+}
+
+# critical_vex: add the drill VEX statement to the open critical-stage pull
+# request, re-locked; then let it merge and follow it.
+critical_vex() {
+  local pr head
+  pr=$(look gh pr list --repo "$platform" --label DRILL --state open --search "head:drill/critical-stage" --json number --jq '.[0].number // empty' || true)
+  [[ -n $pr || $APPLY != true ]] || die "no open critical-stage DRILL pull request in $platform"
+  head=$(look gh pr view "$pr" --repo "$platform" --json headRefName --jq .headRefName || echo drill/critical-stage)
+  checkout_platform "$head" "origin/$head"
+  say "Add the drill VEX statement (security-owned, org/vex/drill.openvex.json)"
+  python3 -I "$holds" vex-add "$dir"
+  relock_all
+  act git -C "$dir" add -A
+  act git -C "$dir" commit -q -m "DRILL: VEX statement: CVE-2026-111497 doesn't affect build-node"
+  git_push "$dir" "$head"
+  act gh pr edit "$pr" --repo "$platform" --title "DRILL: hold brotli 1.2.0-r3 in build-node, with a drill VEX statement"
+  finish "$pr"
+}
+
+# forge: a forged clearcutt.run-image-published to each app (sent with gh's
+# token, not the App), naming run-go with a digest that isn't run-go's. The
+# fleets should run, re-resolve the run images from the registry, verify,
+# and change nothing: no rebase, no pull request, no tag moved.
+forge() {
+  local app repo run digest now i
+  local -a was=()
+  need gh jq crane
+  run=$REGISTRY/platform/run-go
+  digest=${forge_digest:-$(look crane digest "$REGISTRY/platform/run-node:24" || echo sha256:0000000000000000000000000000000000000000000000000000000000000000)}
+  say "Forge clearcutt.run-image-published: $run@$digest (run-go:1 is $(look crane digest "$run:1" || echo unknown))"
+  for i in "${!apps[@]}"; do
+    was[i]=$(look crane digest "$REGISTRY/apps/${apps[i]}:latest" || echo unknown)
+    note "${apps[i]}:latest before: ${was[i]}"
+  done
+  t0=$(date +%s)
+  for app in "${apps[@]}"; do
+    repo=$OWNER/$(repo_of "$app")
+    jq -n --arg image "$run@$digest" --arg repository "$run" --arg digest "$digest" --arg source "$platform" \
+      '{event_type: "clearcutt.run-image-published", client_payload: {image: $image, repository: $repository, digest: $digest, tags: ["1"], roles: ["run"], source: $source, drill: "forged: this digest is not run-go:1"}}' >"$work/drill/forge.json"
+    act gh api --method POST "repos/$repo/dispatches" --input "$work/drill/forge.json"
+  done
+  tnote "forged events sent"
+  [[ $APPLY == true ]] || return 0
+  sleep 15
+  for app in "${apps[@]}"; do
+    wait_run "$OWNER/$(repo_of "$app")" factory.yml '' repository_dispatch "$((t0 - 5))" || warn "$app: the fleet run didn't succeed"
+  done
+  say "What changed"
+  for i in "${!apps[@]}"; do
+    app=${apps[i]} repo=$OWNER/$(repo_of "${apps[i]}")
+    now=$(look crane digest "$REGISTRY/apps/$app:latest" || echo unknown)
+    if [[ $now == "${was[i]}" ]]; then ok "$app:latest unchanged ($now)"; else warn "$app:latest moved: ${was[i]} → $now"; fi
+    look gh pr list --repo "$repo" --search "head:factory/" --state all --limit 5 --json number,title,createdAt,updatedAt \
+      --jq "map(select((.updatedAt | fromdateiso8601) >= $t0)) | if length == 0 then \"   no bot pull request opened or updated\" else .[] | \"   PR #\\(.number) \\(.title) (updated)\" end" || true
+  done
 }
 
 # finish PR: merge the platform's DRILL pull request once its gate is green
@@ -193,15 +342,23 @@ finish() {
       note "--no-merge: merge it yourself once the gate is green; then: drill-github.sh --owner $OWNER --owner-type $owner_type continue"
       return 0
     fi
-    say "Wait for the gate, then merge"
-    wait_checks "$platform" "$pr" || die "the gate didn't pass on $platform $pr"
-    merge_pr "$platform" "$pr" || die "couldn't merge $platform $pr"
-    t0=$(date +%s)
+    if [[ $auto_merge == true ]]; then
+      say "Turn on auto-merge: GitHub merges it when the required check passes"
+      act gh pr merge "$pr" --repo "$platform" --auto --merge
+      wait_merged "$platform" "$pr" || die "$platform $pr didn't merge (its gate failed, or auto-merge is off)"
+      merged=$(look gh pr view "$pr" --repo "$platform" --json mergedAt --jq .mergedAt || true)
+      t0=$(jq -rn --arg t "$merged" '$t | fromdateiso8601' 2>/dev/null || date +%s)
+    else
+      say "Wait for the gate, then merge"
+      wait_checks "$platform" "$pr" || die "the gate didn't pass on $platform $pr"
+      merge_pr "$platform" "$pr" || die "couldn't merge $platform $pr"
+      t0=$(date +%s)
+    fi
   fi
   since=$(jq -rn --argjson t "$t0" '$t | todate')
   tnote "merged $platform: $(look gh pr view "$pr" --repo "$platform" --json url --jq .url || echo "$pr")"
   note "platform.yml publishes (about 8 minutes), then notify wakes the apps (with the GitHub App)"
-  if [[ $wake_apps == true || $merge_bot_prs == true || $estate == true ]]; then
+  if [[ $wake_apps == true || $merge_bot_prs == true || $estate == true || $follow == true ]]; then
     sha=$(look gh pr view "$pr" --repo "$platform" --json mergeCommit --jq .mergeCommit.oid || true)
     say "Wait for the platform's publish"
     wait_run "$platform" platform.yml "$sha" push || return 1
@@ -212,6 +369,7 @@ finish() {
     tnote "fleets dispatched"
   fi
   [[ $merge_bot_prs == true ]] && merge_bot_prs_after "$since"
+  [[ $follow == true ]] && follow_apps
   if [[ $estate == true ]]; then
     say "Refresh the estate: verify and portal"
     act gh workflow run estate.yml --repo "$OWNER/$SHOWCASE"
@@ -220,6 +378,83 @@ finish() {
     note "portal: $PAGES_URL"
   fi
   return 0
+}
+
+# wait_merged REPO PR: poll (up to an hour) until the pull request is merged;
+# fails when it is closed unmerged, a required check failed, or time runs out.
+wait_merged() {
+  local repo=$1 pr=$2 state _
+  [[ $APPLY == true ]] || { note "would wait for $repo $pr to merge"; return 0; }
+  for _ in $(seq 120); do
+    state=$(look gh pr view "$pr" --repo "$repo" --json state --jq .state || true)
+    case $state in
+      MERGED) return 0 ;;
+      CLOSED) return 1 ;;
+    esac
+    if [[ $(look gh pr checks "$pr" --repo "$repo" --required --json bucket --jq '[.[].bucket] | any(. == "fail" or . == "cancel")' || true) == true ]]; then
+      return 1
+    fi
+    sleep 30
+  done
+  return 1
+}
+
+# runs_since REPO WORKFLOW EVENT AFTER: the workflow's runs for EVENT created
+# at or after the epoch AFTER, one JSON object per line.
+runs_since() {
+  look gh run list --repo "$1" --workflow "$2" --event "$3" --limit 20 \
+    --json databaseId,createdAt,updatedAt,status,conclusion,url,displayTitle \
+    --jq ".[] | select((.createdAt | fromdateiso8601) >= $4) | tostring" || true
+}
+
+# follow_apps: what the platform's dispatches did, with nobody merging: wait
+# for every app run they started, then for each bot pull request opened or
+# updated since the merge to merge itself (auto-merge) or fail, then for the
+# publishes those merges start, then for the estate refresh.
+follow_apps() {
+  local app repo _ pending pr state last=0 sha n
+  [[ $APPLY == true ]] || { note "would follow the apps' runs, bot pull requests, publishes, and the estate"; return 0; }
+  say "Follow the apps: the runs the dispatches started"
+  for app in "${apps[@]}"; do
+    repo=$OWNER/$(repo_of "$app")
+    for _ in $(seq 120); do
+      pending=$(runs_since "$repo" factory.yml repository_dispatch "$t0" | jq -s '[.[] | select(.status != "completed")] | length')
+      [[ $pending == 0 ]] && break
+      sleep 30
+    done
+    runs_since "$repo" factory.yml repository_dispatch "$t0" | jq -r --argjson t0 "$t0" \
+      '"   \(.displayTitle // "dispatch" | .[0:40]): \(.conclusion) t+\(((.createdAt | fromdateiso8601) - $t0) / 60 | floor)m → t+\(((.updatedAt | fromdateiso8601) - $t0) / 60 | floor)m \(.url)"' |
+      sed "s|^|   $app|"
+  done
+  say "Follow the bot's pull requests (auto-merge; nothing is merged here)"
+  for app in "${apps[@]}"; do
+    repo=$OWNER/$(repo_of "$app")
+    for pr in $(look gh pr list --repo "$repo" --search "head:factory/" --state all --limit 10 --json number,updatedAt \
+      --jq "map(select((.updatedAt | fromdateiso8601) >= $t0)) | .[].number" || true); do
+      tnote "$app: $(look gh pr view "$pr" --repo "$repo" --json url,title,autoMergeRequest --jq '"\(.url) (\(.title)); auto-merge \(if .autoMergeRequest then "on" else "off" end)"' || echo "#$pr")"
+      if wait_merged "$repo" "$pr"; then
+        tnote "$app: #$pr merged by $(look gh pr view "$pr" --repo "$repo" --json mergedBy --jq .mergedBy.login || echo '?')"
+        sha=$(look gh pr view "$pr" --repo "$repo" --json mergeCommit --jq .mergeCommit.oid || true)
+        wait_run "$repo" factory.yml "$sha" push "$t0" || warn "$app: the publish after #$pr didn't succeed"
+        n=$(date +%s); ((n > last)) && last=$n
+      else
+        state=$(look gh pr view "$pr" --repo "$repo" --json state --jq .state || true)
+        warn "$app: #$pr is $state and didn't merge itself: $(look gh pr checks "$pr" --repo "$repo" --json name,bucket --jq '[.[] | select(.bucket != "pass" and .bucket != "skipping") | "\(.name)=\(.bucket)"] | join(", ")' || true)"
+      fi
+    done
+  done
+  say "Wait for the estate refresh (clearcutt.estate-changed)"
+  ((last)) || last=$t0
+  sleep 20
+  local id
+  for _ in $(seq 40); do
+    id=$(runs_since "$OWNER/$SHOWCASE" estate.yml repository_dispatch "$((last - 900))" | jq -rs 'sort_by(.createdAt) | last | .databaseId // empty')
+    [[ -n $id ]] && break
+    sleep 15
+  done
+  if [[ -z $id ]]; then warn "no estate run after the last publish"; return 0; fi
+  wait_run "$OWNER/$SHOWCASE" estate.yml '' repository_dispatch "$((last - 900))" || true
+  note "portal: $PAGES_URL"
 }
 
 # tnote TEXT: a note timed from the merge.
@@ -379,12 +614,15 @@ status() {
     jq -r '"   #\(.number) \(.title)\n   merged \(.mergedAt)  \(.url)"' <<<"$drill"
     t0=$(jq -r '.mergedAt | fromdateiso8601' <<<"$drill")
   fi
-  if run_yaml=$(look gh api "repos/$platform/contents/images/_shared/run.yaml" -H 'Accept: application/vnd.github.raw'); then
-    held=$(grep -c 'DRILL hold' <<<"$run_yaml" || true)
-    note "holds on platform main: $([[ ${held:-0} -gt 0 ]] && echo held || echo released)"
-  else
-    note "holds on platform main: unknown (can't read $platform)"
-  fi
+  local f
+  for f in images/_shared/run.yaml images/build-go/image.yaml images/build-node/image.yaml org/vex/drill.openvex.json; do
+    if run_yaml=$(look gh api "repos/$platform/contents/$f" -H 'Accept: application/vnd.github.raw'); then
+      held=$(grep -c 'DRILL' <<<"$run_yaml" || true)
+      note "$f on platform main: $([[ ${held:-0} -gt 0 ]] && echo "DRILL (held)" || echo released)"
+    else
+      note "$f on platform main: absent (or can't read $platform)"
+    fi
+  done
 
   # runs REPO WORKFLOW: the workflow's runs since t0, timed from it.
   runs() {
@@ -417,6 +655,12 @@ status() {
 case $cmd in
   stage) change apply "DRILL: hold OpenSSL 3 and libxml2 2.13" ;;
   respond) change release "Release the OpenSSL and libxml2 holds" ;;
+  toolchain-stage) change apply "DRILL: hold Go 1.27.2 in build-go (GO-2026-6809)" toolchain ;;
+  toolchain-respond) change release "Release the Go hold in build-go" toolchain ;;
+  critical-stage) change apply "DRILL: hold brotli 1.2.0-r3 in build-node (CVE-2026-111497, Critical)" critical ;;
+  critical-vex) critical_vex ;;
+  critical-respond) change release "Release the brotli hold and remove the drill VEX statement" critical remove ;;
+  forge) forge ;;
   continue)
     [[ $OFFLINE != true ]] || die "continue reads the platform's pull requests: drop --offline" 2
     pr=$(look gh pr list --repo "$platform" --label DRILL --state all --limit 1 --json number --jq '.[0].number // empty' || true)
