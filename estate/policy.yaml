@@ -23,4 +23,4 @@ maxDaysBehind: 7
 maxScanAgeDays: 7
 
 # Read the security-owned VEX from the same signature-verified profile.
-vex: [.profile/vex/catalog.openvex.json]
+vex: [.profile/vex/catalog.openvex.json, .profile/vex/drill.openvex.json]  # DRILL (drill 2, act 3): removed when the drill ends
