@@ -227,6 +227,8 @@ what followed it; `continue` picks it up.
 | 21:57:02 | platform#18 merged by auto-merge (gate green 21:56:44) |
 | 22:16:16 | act 1 stage done: checkout rebuilt on Go 1.27.2 and published, estate 9/9 verified, GO-2026-6809 shown in checkout and build-go |
 | 22:17 | act 1 respond started (`toolchain-respond`) |
+| 22:42:14 | act 1 respond done: checkout rebuilt on Go 1.27.3, estate 9/9 verified, GO-2026-6809 gone |
+| 22:53 | act 4: forged `run-image-published` sent to the three apps (`forge`) |
 
 
 ## Act 2: a CVE in an app's own dependency (Dependabot)
@@ -313,3 +315,30 @@ resolve the stack just after it moved; had it run earlier, it would have
 proposed the build image alone, and the `stack-published` event that follows
 would have updated the pull request. Either way the second event covers the
 first one's race.
+
+The portal showed it too: checkout's image page listed GO-2026-6809 with a
+link to the Go vulnerability database, at checkout's new digest.
+
+### Respond: release the hold
+
+[platform#19](https://github.com/northcutted/clearcutt-showcase-platform/pull/19)
+opened 22:17:19Z; gate green 22:20:59; merged by auto-merge at
+**22:21:11Z (t = 0)**.
+
+| t | What happened | Links |
+|---|---|---|
+| +5m29s | build-go published on Go 1.27.3: `935e0db6f604…` | [platform run](https://github.com/northcutted/clearcutt-showcase-platform/actions/runs/40965205202) |
+| +5m40s | `clearcutt.build-image-published` to the three apps | |
+| +5m57s / +6m07s | stack go:1 pushed; `clearcutt.stack-published` | |
+| +6m09s | **checkout#14 "Rebuild checkout on the newest build image"**, auto-merge on; catalog and storefront: nothing to propose | [checkout#14](https://github.com/northcutted/clearcutt-showcase-checkout/pull/14) |
+| +7m19s | build-go reproduced; the platform's estate refresh | |
+| +10m16s | checkout#14's gate green (4m07s after opening) | |
+| **+10m38s** | **checkout#14 merged by auto-merge** | |
+| +14m52s | checkout published on Go 1.27.3: `d93c81fc096a…` | [run](https://github.com/northcutted/clearcutt-showcase-checkout/actions/runs/40966563354) |
+| +16m07s | reproduced; `estate-changed` sent at +16m16s | |
+| **+21m03s** | **estate verified and portal deployed**: 9 of 9 verified, GO-2026-6809 gone from checkout and build-go (attested scan and rescan), both reproduced | [estate run](https://github.com/northcutted/clearcutt-showcase/actions/runs/40967276581) |
+
+**About 21 minutes from merging the toolchain fix to a verified estate
+with the fix in the app, with no person after the merge** (drill 1's run
+image CVE took 27 minutes with an operator merging the bot's pull
+requests). The estate run spent 2 of its 5 minutes queued.

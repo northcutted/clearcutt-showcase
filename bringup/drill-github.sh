@@ -42,6 +42,10 @@
 #             clearcutt-factory), name the image in estate/refs.txt, run the
 #             estate
 #   untrusted-cleanup  remove the workflow, the refs line, and the package
+#   rollback  act 6: a pull request in an app repository (--rollback-app,
+#             default checkout) that sets its lock back to --rollback-to REF,
+#             merged by auto-merge when its gate passes; reports whether the
+#             publish moved latest back (factory moves tags only forward)
 #
 #   continue  pick up the latest DRILL pull request where a command left it
 #             (after --no-merge, or an interruption): merge it once green
@@ -81,6 +85,7 @@
 #   --estate          last, run the showcase's estate workflow (verify and
 #                     portal) by hand and wait for it
 #   --forge-digest D  forge: the digest the forged event names
+#   --rollback-to REF, --rollback-app APP, --rollback-title T  rollback's target
 #   --git-protocol P  https (default; gh's token) or ssh, to clone and push the
 #                     platform repository
 #   --work DIR        work directory (default bringup/.work/ORG)
@@ -99,6 +104,7 @@ apps=(checkout storefront catalog)
 holds=$root/prototype/scripts/drill-holds.py
 owner='' owner_type=org prefix='' prefix_set=false cmd='' merge=true merge_bot_prs=false work='' platform_clone=''
 wake_apps=false estate=false git_protocol=https t0=0 auto_merge=false follow=false forge_digest=''
+rollback_to='' rollback_app='' rollback_title=''
 
 usage() { sed -n '2,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while (($#)); do
@@ -116,11 +122,14 @@ while (($#)); do
     --auto-merge) auto_merge=true ;;
     --follow) follow=true ;;
     --forge-digest) forge_digest=${2:?}; shift ;;
+    --rollback-to) rollback_to=${2:?}; shift ;;
+    --rollback-app) rollback_app=${2:?}; shift ;;
+    --rollback-title) rollback_title=${2:?}; shift ;;
     --git-protocol) git_protocol=${2:?}; shift ;;
     --work) work=${2:?}; shift ;;
     --platform-clone) platform_clone=${2:?}; shift ;;
     -h | --help) usage 0 ;;
-    stage | respond | continue | status | forge | untrusted-stage | untrusted-cleanup) cmd=$1 ;;
+    stage | respond | continue | status | forge | untrusted-stage | untrusted-cleanup | rollback) cmd=$1 ;;
     toolchain-stage | toolchain-respond | critical-stage | critical-vex | critical-respond) cmd=$1 ;;
     *) printf 'unknown argument: %s\n\n' "$1" >&2; usage 2 ;;
   esac
@@ -412,6 +421,51 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   else
     act gh api --method DELETE "/orgs/$OWNER/packages/container/${pkg//\//%2F}"
   fi
+}
+
+# rollback: act 6. Open a pull request in the app's repository (--rollback-app,
+# default checkout) that sets the app's lock and rendered Containerfile back
+# to what they were at --rollback-to REF (a commit of that repository), let
+# it merge when its gate passes, and report what the publish did with the
+# app's tags: factory moves a tag only forward (an image created later, or
+# rebased past this one, keeps it), unless --force-tags, which the reusable
+# workflows don't pass.
+rollback() {
+  local app=${rollback_app:-checkout} repo dir branch pr sha before after id title
+  [[ -n $rollback_to ]] || die "rollback needs --rollback-to REF" 2
+  need gh git jq crane
+  repo=$OWNER/$(repo_of "$app")
+  dir=$work/drill/$app
+  if [[ -d $dir/.git ]]; then git -C "$dir" fetch -q origin; else git clone -q "$(remote_url "$OWNER" "$(repo_of "$app")")" "$dir"; fi
+  git -C "$dir" reset -q --hard
+  git -C "$dir" clean -fdq
+  branch=drill/rollback-$(date -u +%Y%m%dT%H%M%SZ)
+  git -C "$dir" checkout -q -B "$branch" origin/main
+  say "Set $app's lock back to $rollback_to"
+  git -C "$dir" checkout "$rollback_to" -- "$app/app.lock.yaml" "$app/app.Containerfile"
+  if git -C "$dir" diff --cached --quiet; then ok "main already has that lock"; return 0; fi
+  git -C "$dir" --no-pager diff --cached --stat | sed 's/^/   /'
+  title=${rollback_title:-"DRILL: roll $app back to its lock at ${rollback_to:0:12}"}
+  act git -C "$dir" commit -q -m "$title"
+  git_push "$dir" "$branch"
+  # shellcheck disable=SC2016 # Markdown backticks, not expansions
+  printf '**DRILL** (drill 2, act 6): %s.\n\nSets `%s/app.lock.yaml` (and its rendered Containerfile) back to commit %s, so the build reproduces that release bit for bit. factory publishes the image (already in the registry: it only checks it is signed and attested) and moves `latest` to it only if `latest` holds nothing newer. Opened by bringup/drill-github.sh; results in bringup/DRILL-RESULTS.md.\n' \
+    "$title" "$app" "$rollback_to" >"$work/drill/body.md"
+  act gh label create DRILL --repo "$repo" --color B60205 --description "CVE drill (showcase drills)" --force
+  act gh pr create --repo "$repo" --head "$branch" --base main --title "$title" --body-file "$work/drill/body.md" --label DRILL
+  before=$(look crane digest "$REGISTRY/apps/$app:latest" || echo unknown)
+  note "$app:latest before: $before"
+  act gh pr merge "$branch" --repo "$repo" --auto --merge
+  wait_merged "$repo" "$branch" || die "$repo $branch didn't merge"
+  pr=$(look gh pr view "$branch" --repo "$repo" --json number --jq .number || true)
+  t0=$(jq -rn --arg t "$(look gh pr view "$branch" --repo "$repo" --json mergedAt --jq .mergedAt)" '$t | fromdateiso8601')
+  sha=$(look gh pr view "$branch" --repo "$repo" --json mergeCommit --jq .mergeCommit.oid || true)
+  tnote "merged $repo#$pr"
+  wait_run "$repo" factory.yml "$sha" push || warn "the publish run didn't succeed"
+  after=$(look crane digest "$REGISTRY/apps/$app:latest" || echo unknown)
+  if [[ $after == "$before" ]]; then note "$app:latest stayed at $after"; else note "$app:latest moved: $before → $after"; fi
+  id=$(look gh run list --repo "$repo" --workflow factory.yml --commit "$sha" --event push --limit 1 --json databaseId --jq '.[0].databaseId' || true)
+  [[ -z $id ]] || look gh run view "$id" --repo "$repo" --log | grep -E 'already published|moved its tags|left .*:latest|force-tags|pushed .*@sha256|publish' | sed 's/^/   /' | head -12 || true
 }
 
 # forge: a forged clearcutt.run-image-published to each app (sent with gh's
@@ -794,6 +848,7 @@ case $cmd in
   forge) forge ;;
   untrusted-stage) untrusted_stage ;;
   untrusted-cleanup) untrusted_cleanup ;;
+  rollback) rollback ;;
   continue)
     [[ $OFFLINE != true ]] || die "continue reads the platform's pull requests: drop --offline" 2
     pr=$(look gh pr list --repo "$platform" --label DRILL --state all --limit 1 --json number --jq '.[0].number // empty' || true)
