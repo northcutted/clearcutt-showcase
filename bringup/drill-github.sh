@@ -36,6 +36,13 @@
 #             the run image of another stack), and check that the fleets ran
 #             and changed nothing
 #
+#   untrusted-stage    act 5: add bringup/drill-untrusted.yml to the showcase
+#             repository and run it (push REGISTRY/drill/untrusted:1 signed by
+#             a throwaway key without a transparency log; build on it with
+#             clearcutt-factory), name the image in estate/refs.txt, run the
+#             estate
+#   untrusted-cleanup  remove the workflow, the refs line, and the package
+#
 #   continue  pick up the latest DRILL pull request where a command left it
 #             (after --no-merge, or an interruption): merge it once green
 #             (or let auto-merge), then follow it through with the same options
@@ -113,7 +120,7 @@ while (($#)); do
     --work) work=${2:?}; shift ;;
     --platform-clone) platform_clone=${2:?}; shift ;;
     -h | --help) usage 0 ;;
-    stage | respond | continue | status | forge) cmd=$1 ;;
+    stage | respond | continue | status | forge | untrusted-stage | untrusted-cleanup) cmd=$1 ;;
     toolchain-stage | toolchain-respond | critical-stage | critical-vex | critical-respond) cmd=$1 ;;
     *) printf 'unknown argument: %s\n\n' "$1" >&2; usage 2 ;;
   esac
@@ -274,7 +281,8 @@ expect_red() {
 # request, re-locked; then let it merge and follow it.
 critical_vex() {
   local pr head
-  pr=$(look gh pr list --repo "$platform" --label DRILL --state open --search "head:drill/critical-stage" --json number --jq '.[0].number // empty' || true)
+  pr=$(look gh pr list --repo "$platform" --label DRILL --state open --json number,headRefName \
+    --jq 'map(select(.headRefName | startswith("drill/critical-stage"))) | .[0].number // empty' || true)
   [[ -n $pr || $APPLY != true ]] || die "no open critical-stage DRILL pull request in $platform"
   head=$(look gh pr view "$pr" --repo "$platform" --json headRefName --jq .headRefName || echo drill/critical-stage)
   checkout_platform "$head" "origin/$head"
@@ -286,6 +294,124 @@ critical_vex() {
   git_push "$dir" "$head"
   act gh pr edit "$pr" --repo "$platform" --title "DRILL: hold brotli 1.2.0-r3 in build-node, with a drill VEX statement"
   finish "$pr"
+}
+
+# wait_profile_published SHA: wait for the platform's push run for SHA to
+# have published the shared profile (its profile / push job succeeded).
+wait_profile_published() {
+  local sha=$1 id='' _ c
+  [[ $APPLY == true ]] || { note "would wait for the platform's profile job"; return 0; }
+  for _ in $(seq 60); do
+    id=$(look gh run list --repo "$platform" --workflow platform.yml --event push --commit "$sha" --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+    [[ -n $id ]] && break
+    sleep 10
+  done
+  [[ -n $id ]] || { warn "no platform run for $sha"; return 1; }
+  for _ in $(seq 120); do
+    c=$(look gh run view "$id" --repo "$platform" --json jobs --jq '.jobs[] | select(.name | test("^profile")) | select(.status == "completed") | .conclusion' | head -1 || true)
+    [[ -n $c ]] && break
+    sleep 15
+  done
+  [[ $c == success ]] || { warn "the profile job: ${c:-not finished}"; return 1; }
+  tnote "shared profile published: $(look crane digest "$REGISTRY/factory/org:1" || echo '?')"
+}
+
+# estate_vex add|remove: list the drill VEX document in the estate's policy
+# (estate/policy.yaml in the showcase repository), or take it out, and push
+# to main. The estate reads VEX documents from the signed shared profile by
+# file name, so the policy must name the drill document while the profile
+# carries it, and not after: a named file the profile lacks stops the run.
+estate_vex() {
+  local action=$1 clone=$work/push/showcase f=estate/policy.yaml
+  say "Estate policy: $action the drill VEX document"
+  [[ -d $clone/.git ]] || die "no clone of $OWNER/$SHOWCASE at $clone"
+  act git -C "$clone" pull -q --ff-only origin main
+  if [[ $APPLY == true ]]; then
+    python3 -I - "$clone/$f" "$action" <<'PY'
+import pathlib, sys
+p, action = pathlib.Path(sys.argv[1]), sys.argv[2]
+without = "vex: [.profile/vex/catalog.openvex.json]\n"
+with_drill = "vex: [.profile/vex/catalog.openvex.json, .profile/vex/drill.openvex.json]  # DRILL (drill 2, act 3): removed when the drill ends\n"
+text = p.read_text()
+src, dst = (without, with_drill) if action == "add" else (with_drill, without)
+if dst not in text:
+    if src not in text:
+        sys.exit(f"{p}: expected text not found: {src!r}")
+    p.write_text(text.replace(src, dst))
+PY
+  fi
+  if git -C "$clone" diff --quiet; then ok "nothing to change"; return 0; fi
+  git -C "$clone" --no-pager diff | sed 's/^/   /'
+  act git -C "$clone" commit -q -am "DRILL: estate $([[ $action == add ]] && echo applies || echo stops applying) the drill VEX statement (drill 2, act 3)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+  act git -C "$clone" push -q origin main
+  tnote "estate policy: drill VEX $([[ $action == add ]] && echo listed || echo unlisted)"
+}
+
+# untrusted_stage: act 5. Add bringup/drill-untrusted.yml to the showcase
+# repository and run it: it pushes $REGISTRY/drill/untrusted:1 signed by a
+# throwaway key (no transparency log), then builds on it with
+# clearcutt-factory. estate/refs.txt names the image, and the estate runs.
+untrusted_stage() {
+  local clone=$work/push/showcase repo=$OWNER/$SHOWCASE ref=$REGISTRY/drill/untrusted:1 after id
+  need gh jq git
+  [[ -d $clone/.git ]] || die "no clone of $repo at $clone"
+  t0=$(date +%s)
+  say "Add the drill workflow and name the image in estate/refs.txt"
+  act git -C "$clone" pull -q --ff-only origin main
+  act cp "$here/drill-untrusted.yml" "$clone/.github/workflows/drill-untrusted.yml"
+  if [[ $APPLY == true ]] && ! grep -qxF "$ref" "$clone/estate/refs.txt"; then
+    printf '# DRILL (drill 2, act 5): signed by an untrusted key; removed when the drill ends.\n%s\n' "$ref" >>"$clone/estate/refs.txt"
+  fi
+  act git -C "$clone" add .github/workflows/drill-untrusted.yml estate/refs.txt
+  act git -C "$clone" commit -q -m "DRILL: an untrusted-signed image in the namespace (drill 2, act 5)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+  act git -C "$clone" push -q origin main
+  [[ $APPLY == true ]] && sleep 10
+  say "Push and sign the image with an untrusted key"
+  after=$(date +%s)
+  act gh workflow run drill-untrusted.yml --repo "$repo" -f step=publish
+  [[ $APPLY == true ]] && sleep 10
+  wait_run "$repo" drill-untrusted.yml '' workflow_dispatch "$after" || die "the drill image wasn't published"
+  say "Ask clearcutt-factory to build on it"
+  after=$(date +%s)
+  act gh workflow run drill-untrusted.yml --repo "$repo" -f step=factory
+  [[ $APPLY == true ]] && sleep 10
+  wait_run "$repo" drill-untrusted.yml '' workflow_dispatch "$after" || true
+  if [[ $APPLY == true ]]; then
+    id=$(look gh run list --repo "$repo" --workflow drill-untrusted.yml --limit 1 --json databaseId --jq '.[0].databaseId' || true)
+    look gh run view "$id" --repo "$repo" --log | grep -E 'factory exit status|error|refus|wrote |built ' | sed 's/^/   /' | tail -15 || true
+  fi
+  say "Run the estate"
+  after=$(date +%s)
+  act gh workflow run estate.yml --repo "$repo"
+  [[ $APPLY == true ]] && sleep 10
+  wait_run "$repo" estate.yml '' workflow_dispatch "$after" || note "(expected: the estate gate fails on the drill image)"
+}
+
+# untrusted_cleanup: take act 5 out again: the workflow, the refs line, and
+# the image (its package).
+untrusted_cleanup() {
+  local clone=$work/push/showcase repo=$OWNER/$SHOWCASE ref=$REGISTRY/drill/untrusted:1 pkg
+  say "Remove the drill workflow, the estate ref, and the image"
+  act git -C "$clone" pull -q --ff-only origin main
+  if [[ $APPLY == true ]]; then
+    grep -vxF "$ref" "$clone/estate/refs.txt" | grep -v '^# DRILL (drill 2, act 5)' >"$clone/estate/refs.txt.new"
+    mv "$clone/estate/refs.txt.new" "$clone/estate/refs.txt"
+  fi
+  act git -C "$clone" rm -q --ignore-unmatch .github/workflows/drill-untrusted.yml
+  act git -C "$clone" commit -q -am "DRILL: remove the untrusted-signed image (drill 2, act 5 clean-up)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+  act git -C "$clone" push -q origin main
+  pkg=${REGISTRY#ghcr.io/"$OWNER"/}/drill/untrusted
+  if [[ $owner_type == user ]]; then
+    act gh api --method DELETE "/user/packages/container/${pkg//\//%2F}"
+  else
+    act gh api --method DELETE "/orgs/$OWNER/packages/container/${pkg//\//%2F}"
+  fi
 }
 
 # forge: a forged clearcutt.run-image-published to each app (sent with gh's
@@ -358,6 +484,11 @@ finish() {
   since=$(jq -rn --argjson t "$t0" '$t | todate')
   tnote "merged $platform: $(look gh pr view "$pr" --repo "$platform" --json url --jq .url || echo "$pr")"
   note "platform.yml publishes (about 8 minutes), then notify wakes the apps (with the GitHub App)"
+  if [[ $cmd == critical-vex || $cmd == critical-respond ]]; then
+    sha=$(look gh pr view "$pr" --repo "$platform" --json mergeCommit --jq .mergeCommit.oid || true)
+    say "Wait for the shared profile, then match the estate policy to it"
+    wait_profile_published "$sha" && estate_vex "$([[ $cmd == critical-vex ]] && echo add || echo remove)"
+  fi
   if [[ $wake_apps == true || $merge_bot_prs == true || $estate == true || $follow == true ]]; then
     sha=$(look gh pr view "$pr" --repo "$platform" --json mergeCommit --jq .mergeCommit.oid || true)
     say "Wait for the platform's publish"
@@ -661,6 +792,8 @@ case $cmd in
   critical-vex) critical_vex ;;
   critical-respond) change release "Release the brotli hold and remove the drill VEX statement" critical remove ;;
   forge) forge ;;
+  untrusted-stage) untrusted_stage ;;
+  untrusted-cleanup) untrusted_cleanup ;;
   continue)
     [[ $OFFLINE != true ]] || die "continue reads the platform's pull requests: drop --offline" 2
     pr=$(look gh pr list --repo "$platform" --label DRILL --state all --limit 1 --json number --jq '.[0].number // empty' || true)

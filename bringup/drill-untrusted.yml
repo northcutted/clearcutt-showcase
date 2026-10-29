@@ -1,0 +1,142 @@
+# DRILL (drill 2, act 5; bringup/DRILL-RESULTS.md): put an image in the
+# showcase's namespace that is signed by an identity nobody trusts, then ask
+# clearcutt-factory to build on it. Copied into the estate repository's
+# .github/workflows/ for the act and removed when it ends, together with the
+# image (gh api -X DELETE /user/packages/container/<name>).
+#
+#   publish  pushes ghcr.io/<owner>/clearcutt-showcase/drill/untrusted:1 (run-go:1 with
+#            a DRILL label, so it is a real, usable base), signs it with a
+#            throwaway key made in this job (no transparency log, no
+#            timestamp: a signing config with no services), and shows that
+#            the key's signature verifies while the trust policy's signers'
+#            don't. The private key never leaves the runner.
+#   factory  builds an image FROM it with clearcutt-factory under the
+#            showcase's signed shared profile (lock, then build without
+#            pushing): does factory refuse an untrusted base?
+#
+# The estate sees the image once estate/refs.txt names it.
+name: drill-untrusted
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: What to run
+        type: choice
+        options: [publish, factory]
+        default: publish
+permissions:
+  contents: read
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write # push the drill image
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/clearcutt-showcase/drill/untrusted
+      RUN_GO: ghcr.io/${{ github.repository_owner }}/clearcutt-showcase/platform/run-go:1
+      STEP: ${{ inputs.step }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: northcutted/clearcutt-factory@v0.4.1
+        with:
+          tools: "false" # clearcutt-factory and cosign
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push the image and sign it with a throwaway key, without a transparency log
+        if: env.STEP == 'publish'
+        run: |
+          set -euo pipefail
+          dir=$(mktemp -d)
+          printf 'FROM %s\nLABEL org.opencontainers.image.description="DRILL: signed by an untrusted key (drill 2, act 5)"\nLABEL org.opencontainers.image.source="https://github.com/%s"\n' \
+            "$RUN_GO" "$GITHUB_REPOSITORY" > "$dir/Containerfile"
+          docker build -q -f "$dir/Containerfile" -t "$IMAGE:1" "$dir"
+          docker push -q "$IMAGE:1"
+          digest=$(docker buildx imagetools inspect "$IMAGE:1" --format '{{json .Manifest}}' | jq -r .digest)
+          echo "pushed $IMAGE@$digest"
+          cd "$RUNNER_TEMP"
+          COSIGN_PASSWORD="" cosign generate-key-pair --output-key-prefix drill >/dev/null
+          cosign signing-config create --out no-tlog.json # no services: no Rekor, no timestamp authority
+          COSIGN_PASSWORD="" cosign sign --yes --key drill.key --signing-config no-tlog.json "$IMAGE@$digest"
+          rm -f drill.key
+          echo "::group::the throwaway key's signature verifies (no log entry)"
+          cosign verify --key drill.pub --insecure-ignore-tlog "$IMAGE@$digest" | jq -c '.[].critical'
+          echo "::endgroup::"
+          echo "::group::no signer the trust policy names verifies it"
+          if cosign verify --certificate-identity-regexp '^https://github\.com/northcutted/clearcutt-factory/\.github/workflows/(images|fleet|reattest)\.yml@refs/tags/v\d+\.\d+\.\d+$' \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com "$IMAGE@$digest" >/dev/null 2>"$RUNNER_TEMP/verify.err"; then
+            echo "::error::a trusted signer verified the drill image"
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/verify.err"
+          echo "::endgroup::"
+          {
+            echo "### DRILL: an untrusted-signed image"
+            echo
+            echo "- image: \`$IMAGE@$digest\` (tag \`1\`)"
+            echo "- signed with a key made in this job and thrown away; no transparency log entry, no timestamp"
+            echo "- the trust policy's image signers do not verify it"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build on it with clearcutt-factory, under the signed shared profile
+        if: env.STEP == 'factory'
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -uo pipefail
+          dir=$(mktemp -d)
+          cd "$dir"
+          cat > factory.org.yaml <<YAML
+          apiVersion: factory.clearcutt.dev/v1alpha1
+          kind: OrgProfile
+          extends:
+            ref: ghcr.io/$OWNER/clearcutt-showcase/factory/org:1
+            signer:
+              certificateIdentity: https://github.com/$OWNER/clearcutt-showcase-platform/.github/workflows/profile.yml@refs/heads/main
+              certificateOIDCIssuer: https://token.actions.githubusercontent.com
+          registry: ghcr.io/$OWNER/clearcutt-showcase/drill
+          tags: []
+          YAML
+          mkdir -p on-untrusted
+          cat > on-untrusted/image.yaml <<YAML
+          apiVersion: factory.clearcutt.dev/v1alpha1
+          kind: Image
+          metadata:
+            name: on-untrusted
+          spec:
+            base: $IMAGE:1
+            user: "65532"
+            labels:
+              org.opencontainers.image.source: https://github.com/$GITHUB_REPOSITORY
+          YAML
+          status=0
+          echo "::group::clearcutt-factory lock"
+          clearcutt-factory lock -f on-untrusted/image.yaml 2>&1 | tee lock.out || status=$?
+          echo "::endgroup::"
+          if [ "$status" = 0 ]; then
+            echo "::group::clearcutt-factory build (not pushed)"
+            clearcutt-factory build -f on-untrusted/image.yaml --no-scan 2>&1 | tee build.out
+            status=${PIPESTATUS[0]}
+            echo "::endgroup::"
+          fi
+          {
+            echo "### DRILL: clearcutt-factory on an untrusted base"
+            echo
+            if [ "$status" = 0 ]; then
+              echo "**Accepted**: lock and build succeeded on \`$IMAGE:1\`, whose only signature is an untrusted key's."
+            else
+              echo "**Refused** (exit $status):"
+              echo
+              echo '```'
+              tail -5 lock.out build.out 2>/dev/null
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "factory exit status: $status"
