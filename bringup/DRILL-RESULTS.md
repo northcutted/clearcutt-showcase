@@ -228,7 +228,8 @@ what followed it; `continue` picks it up.
 | 22:16:16 | act 1 stage done: checkout rebuilt on Go 1.27.2 and published, estate 9/9 verified, GO-2026-6809 shown in checkout and build-go |
 | 22:17 | act 1 respond started (`toolchain-respond`) |
 | 22:42:14 | act 1 respond done: checkout rebuilt on Go 1.27.3, estate 9/9 verified, GO-2026-6809 gone |
-| 22:53 | act 4: forged `run-image-published` sent to the three apps (`forge`) |
+| 23:01:19 | act 4: forged `run-image-published` sent to the three apps (`forge`); fleets ran, nothing changed (23:02:19) |
+| 23:01:41 | act 3 stage: [platform#20](https://github.com/northcutted/clearcutt-showcase-platform/pull/20) opened (brotli held at 1.2.0-r3 in build-node; no auto-merge) |
 
 
 ## Act 2: a CVE in an app's own dependency (Dependabot)
@@ -342,3 +343,25 @@ opened 22:17:19Z; gate green 22:20:59; merged by auto-merge at
 with the fix in the app, with no person after the merge** (drill 1's run
 image CVE took 27 minutes with an operator merging the bot's pull
 requests). The estate run spent 2 of its 5 minutes queued.
+
+## Act 4: a forged `repository_dispatch`
+
+`drill-github.sh forge` sent `clearcutt.run-image-published` to checkout,
+storefront and catalog at 23:01:19Z, with the owner's own token (not the
+App), naming `ghcr.io/northcutted/clearcutt-showcase/platform/run-go@sha256:5b0a15d5ebd6…`:
+a real digest, but run-node's, not run-go's (`run-go:1` is `ed43202dfc75…`).
+
+| t | What happened | Links |
+|---|---|---|
+| +1s | each app's `factory.yml` started on the event (the fleet job; images, reproduce and update-locks skipped) | [checkout](https://github.com/northcutted/clearcutt-showcase-checkout/actions/runs/40970174228), [storefront](https://github.com/northcutted/clearcutt-showcase-storefront/actions/runs/40970172580), [catalog](https://github.com/northcutted/clearcutt-showcase-catalog/actions/runs/40970173245) |
+| +39s…+51s | the fleets re-resolved the run image from the stack (signature checked, `requireSignedStacks`): `rebasing …/apps/checkout@sha256:d93c81fc… onto …/platform/run-go:1 (sha256:ed43202d…)`, then **`already on the newest base, signed, and attested; nothing to do`**, `checkout/app.lock.yaml is up to date`, `no changes under checkout; nothing to propose` (likewise storefront on run-node, catalog on run-python) | |
+| +1m00s | all three runs green; `estate-changed` sent (two estate refreshes ran: one, and one more queued; a third was replaced while waiting) | |
+
+After: `checkout:latest`, `storefront:latest` and `catalog:latest` hold the
+same digests as before; no pull request was opened or updated; no tag moved.
+
+The payload is never read: `fleet.yml` doesn't look at `client_payload` at
+all, and decides from the registry and the signatures. What a forger can do
+is start runs: here three fleet runs (about a minute each) and two estate
+refreshes. That is a cost, not a trust problem, and anyone who can send
+`repository_dispatch` to these repositories can already push to them.
